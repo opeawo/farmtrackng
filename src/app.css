@@ -1,7 +1,36 @@
 @import 'tailwindcss';
-@plugin "daisyui" {
-	themes: farmtrack --default;
+@plugin "daisyui/theme" {
+	name: "farmtrack";
+	default: true;
+	--color-base-100: oklch(0.98 0.01 155);
+	--color-base-200: oklch(0.94 0.02 155);
+	--color-base-300: oklch(0.88 0.04 155);
+	--color-base-content: oklch(0.25 0.06 155);
+	--color-primary: oklch(0.45 0.12 160);
+	--color-primary-content: oklch(0.98 0.01 155);
+	--color-secondary: oklch(0.78 0.1 155);
+	--color-secondary-content: oklch(0.25 0.06 155);
+	--color-accent: oklch(0.72 0.1 60);
+	--color-accent-content: oklch(0.2 0.02 60);
+	--color-neutral: oklch(0.32 0.06 155);
+	--color-neutral-content: oklch(0.92 0.03 155);
+	--color-info: oklch(0.7 0.15 230);
+	--color-info-content: oklch(0.98 0.01 230);
+	--color-success: oklch(0.7 0.17 155);
+	--color-success-content: oklch(0.98 0.01 155);
+	--color-warning: oklch(0.8 0.16 85);
+	--color-warning-content: oklch(0.25 0.05 85);
+	--color-error: oklch(0.65 0.2 25);
+	--color-error-content: oklch(0.98 0.01 25);
+	--rounded-box: 1rem;
+	--rounded-btn: 0.75rem;
+	--rounded-badge: 2rem;
+	--animation-btn: 0.2s;
+	--animation-input: 0.2s;
+	--btn-focus-scale: 0.97;
+	--tab-radius: 0.75rem;
 }
+@plugin "daisyui";
 
 html {
 	scroll-behavior: smooth;

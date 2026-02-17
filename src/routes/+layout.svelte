@@ -9,7 +9,7 @@
 	const hideNav = $derived(page.url.pathname.startsWith('/onboard'));
 </script>
 
-<div class="min-h-screen bg-base-200">
+<div class="min-h-screen bg-base-200/50">
 	<OfflineBanner />
 	{@render children()}
 	{#if !hideNav}

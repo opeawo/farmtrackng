@@ -66,6 +66,6 @@
 	{/if}
 </div>
 
-<a href="/records/add" class="btn btn-primary btn-circle btn-lg fixed bottom-24 right-4 shadow-lg z-30">
+<a href="/records/add" class="fixed bottom-24 right-4 z-30 w-14 h-14 rounded-full bg-gradient-to-br from-primary to-[#40916c] text-white flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition-transform">
 	<Plus size={24} />
 </a>
