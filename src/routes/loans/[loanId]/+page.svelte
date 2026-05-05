@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import StatusBadge from '$lib/components/loans/StatusBadge.svelte';
+	import PaymentInstructions from '$lib/components/loans/PaymentInstructions.svelte';
 
 	let { data }: { data: PageData } = $props();
 	const view = data.view;
@@ -55,6 +56,10 @@
 				</div>
 			</div>
 		</div>
+	{/if}
+
+	{#if view.outstanding_ngn > 0}
+		<PaymentInstructions amount={view.outstanding_ngn} />
 	{/if}
 
 	<div class="grid grid-cols-3 gap-2">
