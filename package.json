@@ -28,6 +28,7 @@
 		"@vite-pwa/sveltekit": "^1.1.0",
 		"daisyui": "^5.5.18",
 		"date-fns": "^4.1.0",
+		"googleapis": "^171.4.0",
 		"idb": "^8.0.3",
 		"lucide-svelte": "^0.564.0",
 		"mapbox-gl": "^3.18.1",

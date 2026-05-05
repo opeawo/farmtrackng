@@ -6,7 +6,9 @@
 
 	let { children } = $props();
 
-	const hideNav = $derived(page.url.pathname.startsWith('/onboard'));
+	const hideNav = $derived(
+		page.url.pathname.startsWith('/onboard') || page.url.pathname.startsWith('/loans')
+	);
 </script>
 
 <div class="min-h-screen bg-base-200/50">
