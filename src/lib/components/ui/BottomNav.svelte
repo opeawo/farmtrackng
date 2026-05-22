@@ -1,17 +1,21 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { LayoutDashboard, ClipboardList, HeartPulse, TrendingUp, AlertTriangle } from 'lucide-svelte';
+	import { LayoutDashboard, Sparkles, ShoppingBag, TrendingUp, AlertTriangle } from 'lucide-svelte';
 
 	const navItems = [
 		{ href: '/', label: 'Home', icon: LayoutDashboard },
-		{ href: '/records', label: 'Records', icon: ClipboardList },
-		{ href: '/health', label: 'Health', icon: HeartPulse },
+		{ href: '/ai', label: 'AI', icon: Sparkles },
+		{ href: '/marketplace', label: 'Shop', icon: ShoppingBag },
 		{ href: '/markets', label: 'Markets', icon: TrendingUp },
 		{ href: '/alerts', label: 'Alerts', icon: AlertTriangle }
 	];
 
 	function isActive(href: string): boolean {
 		if (href === '/') return page.url.pathname === '/';
+		// Disambiguate /markets and /marketplace — both start with "/market".
+		if (href === '/markets') {
+			return page.url.pathname === '/markets' || page.url.pathname.startsWith('/markets/');
+		}
 		return page.url.pathname.startsWith(href);
 	}
 </script>

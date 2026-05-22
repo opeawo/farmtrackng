@@ -14,7 +14,7 @@
 	const typeInfo = $derived(getLivestockType(livestockType));
 </script>
 
-<a href="/records?livestock={id}" class="card bg-base-100 shadow-sm border border-base-300">
+<a href="/ai?species={livestockType}" data-livestock-id={id} class="card bg-base-100 shadow-sm border border-base-300">
 	<div class="card-body p-4 flex-row items-center gap-3">
 		<span class="text-3xl">{typeInfo?.icon ?? '🐾'}</span>
 		<div class="flex-1 min-w-0">
