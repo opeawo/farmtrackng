@@ -1,0 +1,78 @@
+# Cloud Build pipeline for FarmTrack → Cloud Run (europe-west2)
+#
+# Triggered by a Cloud Build GitHub trigger on push to main.
+# Substitutions used:
+#   $PROJECT_ID    - active GCP project (farmtrack-495410)
+#   $SHORT_SHA     - 7-char git SHA
+#   $_REGION       - Cloud Run region (defaults below; override via trigger)
+#   $_REPO         - Artifact Registry repo name
+#   $_SERVICE      - Cloud Run service name
+#   $_RUN_SA       - runtime service account email
+#
+# Env vars on the deployed service are set in the deploy step. Secret-backed
+# values (OPENAI_API_KEY, GOOGLE_SA_KEY) are mounted from Secret Manager.
+
+substitutions:
+  _REGION: europe-west2
+  _REPO: farmtrack
+  _SERVICE: farmtrack
+  _RUN_SA: farmtrack-run@farmtrack-495410.iam.gserviceaccount.com
+  _GOOGLE_SA_EMAIL: farmtrack@farmtrack-495410.iam.gserviceaccount.com
+  _LOAN_SHEET_ID: ''
+  _LOAN_SHEET_LOANS_RANGE: 'Loans!A1:Z1000'
+  _LOAN_SHEET_INSTALLMENTS_RANGE: 'Installments!A1:Z5000'
+
+steps:
+  # 1. Build container image, tag with SHA and latest.
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    args:
+      - build
+      - --tag=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/web:$SHORT_SHA
+      - --tag=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/web:latest
+      - --file=Dockerfile
+      - .
+
+  # 2. Push both tags to Artifact Registry.
+  - name: gcr.io/cloud-builders/docker
+    id: push-sha
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/web:$SHORT_SHA
+  - name: gcr.io/cloud-builders/docker
+    id: push-latest
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/web:latest
+
+  # 3. Deploy to Cloud Run. Service account owns runtime identity.
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/web:$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --service-account=${_RUN_SA}
+      - --allow-unauthenticated
+      - --port=8080
+      - --cpu=1
+      - --memory=1Gi
+      - --min-instances=0
+      - --max-instances=10
+      - --timeout=60s
+      - --set-env-vars=NODE_ENV=production,GOOGLE_SA_EMAIL=${_GOOGLE_SA_EMAIL},LOAN_SHEET_ID=${_LOAN_SHEET_ID},LOAN_SHEET_LOANS_RANGE=${_LOAN_SHEET_LOANS_RANGE},LOAN_SHEET_INSTALLMENTS_RANGE=${_LOAN_SHEET_INSTALLMENTS_RANGE}
+      - --set-secrets=GOOGLE_SA_KEY=google-sa-key:latest,OPENAI_API_KEY=openai-key:latest
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/web:$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/web:latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+
+timeout: 1200s
