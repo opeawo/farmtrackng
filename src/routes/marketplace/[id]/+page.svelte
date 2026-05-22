@@ -35,7 +35,6 @@
 		<div class="mt-3 pt-3 border-t border-base-300/50">
 			<p class="text-[11px] text-base-content/50 uppercase tracking-wide">Price</p>
 			<p class="text-2xl font-bold text-primary mt-0.5">{formatNgn(item.priceNgn)}</p>
-			<p class="text-[11px] text-base-content/40 mt-0.5">{item.priceSource}</p>
 		</div>
 	</div>
 
@@ -94,7 +93,6 @@
 		</dl>
 	</div>
 
-	<p class="text-[11px] text-base-content/40 text-center pt-1">{item.imageCredit}</p>
 </div>
 
 <!-- Sticky buy bar -->
@@ -107,7 +105,7 @@
 			class="btn btn-success w-full gap-2 shadow-lg shadow-success/30 text-white"
 		>
 			<MessageCircle size={18} />
-			Buy on WhatsApp — Pay {formatNgn(downPayment(item.priceNgn))} now
+			Buy on WhatsApp
 		</a>
 	</div>
 </div>

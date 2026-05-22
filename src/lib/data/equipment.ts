@@ -4,10 +4,8 @@ export interface Equipment {
 	tagline: string;
 	description: string;
 	priceNgn: number;
-	priceSource: string;
 	image: string;
 	imageAlt: string;
-	imageCredit: string;
 	features: string[];
 	specs: { label: string; value: string }[];
 }
@@ -26,10 +24,8 @@ export const equipment: Equipment[] = [
 		description:
 			'A complete poultry processing line that takes live birds through scalding, defeathering, evisceration, washing, and chilling — all in one set-up. Built for commercial farms ready to step up from manual processing to a clean, traceable, food-safe operation.',
 		priceNgn: 6_490_000,
-		priceSource: 'Afrimash retail price, May 2026',
 		image: '/images/equipment/poultry-processing-machine-factory-11765539.jpg',
 		imageAlt: 'Industrial poultry processing equipment in operation',
-		imageCredit: 'Photo by Mehmet Turgut Kirkgoz on Pexels',
 		features: [
 			'Handles scalding, defeathering, evisceration and chilling',
 			'Stainless steel contact surfaces — food-safe and easy to clean',
@@ -50,10 +46,8 @@ export const equipment: Equipment[] = [
 		description:
 			'A heavy-duty rotating drum lined with rubber plucker fingers that strip feathers off scalded birds in 30–60 seconds. Designed for small and mid-size processors who want speed without the cost of a full line.',
 		priceNgn: 1_980_000,
-		priceSource: 'Afrimash retail price, May 2026',
 		image: '/images/equipment/stainless-steel-industrial-drum-machine-34397245.jpg',
 		imageAlt: 'Stainless steel industrial drum machine',
-		imageCredit: 'Photo by Vlad Deep on Pexels',
 		features: [
 			'Plucks 20–30 birds per cycle',
 			'Locally fabricated, easy to service',
@@ -74,10 +68,8 @@ export const equipment: Equipment[] = [
 		description:
 			'An electric bone-cutting machine that portions whole chickens into uniform pieces — wings, drums, thighs, breasts — at the size your customer wants. Stainless steel blades make it food-safe and easy to keep clean between batches.',
 		priceNgn: 767_800,
-		priceSource: 'Afrimash retail price, May 2026',
 		image: '/images/equipment/raw-chicken-meat-butcher-cutting-6281497.jpg',
 		imageAlt: 'Raw chicken being portioned',
-		imageCredit: 'Photo by Ragil Tagiyev on Pexels',
 		features: [
 			'Cuts through bone cleanly — uniform portions every time',
 			'Stainless steel blades, removable for cleaning',

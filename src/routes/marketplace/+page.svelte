@@ -59,8 +59,4 @@
 			</div>
 		</a>
 	{/each}
-
-	<p class="text-[11px] text-base-content/40 text-center pt-2">
-		Reference prices from Afrimash and Jiji, May 2026. Final price confirmed on WhatsApp.
-	</p>
 </div>
