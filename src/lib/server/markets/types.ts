@@ -25,7 +25,8 @@ export interface MarketListing {
 	priceNgn: number;
 	unit?: string; // 'each', 'per kg', 'per crate', 'per bag', etc.
 	location: string;
-	postedAt: string;
+	postedAt: string; // free-form, exactly as the source shows it
+	postedAtMs?: number; // epoch ms parsed from postedAt; null when unparseable
 	url: string;
 	category: ListingCategory;
 }

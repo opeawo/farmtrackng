@@ -64,10 +64,14 @@ async function refreshAll(): Promise<CachedPayload> {
 		});
 	}
 
-	// Newest-first within each source; Poultry Plaza posts often have explicit
-	// dates while Jiji uses relative ("Today", "1 day ago"). Without reliable
-	// timestamps we keep insertion order grouped by source — Jiji first, then
-	// Poultry Plaza. The UI shows a source badge so origin is always visible.
+	// Sort strictly newest-first across both sources. Listings whose postedAt
+	// could not be parsed into a real timestamp drop to the bottom.
+	listings.sort((a, b) => {
+		const aMs = a.postedAtMs ?? -Infinity;
+		const bMs = b.postedAtMs ?? -Infinity;
+		return bMs - aMs;
+	});
+
 	return {
 		fetchedAt: new Date().toISOString(),
 		listings,

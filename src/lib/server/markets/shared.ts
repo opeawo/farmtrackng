@@ -75,15 +75,77 @@ export function normaliseListing(
 
 	const unit = typeof r.unit === 'string' && r.unit.trim() ? r.unit.trim().slice(0, 30) : undefined;
 
+	const postedAt =
+		(typeof r.postedAt === 'string' && r.postedAt.trim().slice(0, 60)) || 'Recently';
+	const postedAtMs = parsePostedAt(postedAt) ?? undefined;
+
 	return {
 		source: opts.source,
 		title: r.title.trim().slice(0, 200),
 		priceNgn: Math.round(r.priceNgn),
 		unit,
 		location: r.location.trim().slice(0, 100),
-		postedAt:
-			(typeof r.postedAt === 'string' && r.postedAt.trim().slice(0, 60)) || 'Recently',
+		postedAt,
+		postedAtMs,
 		url,
 		category
 	};
+}
+
+// Parse the wide variety of postedAt strings sources return ("Today",
+// "Yesterday", "3 days ago", "2026-05-29", "May 29, 2026", "29 May") into an
+// epoch-ms timestamp so the merged feed can be sorted strictly newest-first.
+// Returns null when nothing reliable can be extracted.
+export function parsePostedAt(raw: string, now: number = Date.now()): number | null {
+	const trimmed = raw.trim();
+	if (!trimmed) return null;
+
+	const lower = trimmed.toLowerCase();
+
+	if (lower === 'today' || lower === 'just now') return now;
+	if (lower === 'yesterday') return now - 24 * 60 * 60 * 1000;
+
+	// "X minute(s)/hour(s)/day(s)/week(s)/month(s)/year(s) ago"
+	const relMatch = lower.match(
+		/^(\d+)\s+(minute|hour|day|week|month|year)s?\s+ago$/
+	);
+	if (relMatch) {
+		const n = parseInt(relMatch[1], 10);
+		const unit = relMatch[2];
+		const ms =
+			unit === 'minute' ? 60_000
+				: unit === 'hour' ? 60 * 60_000
+				: unit === 'day' ? 24 * 60 * 60_000
+				: unit === 'week' ? 7 * 24 * 60 * 60_000
+				: unit === 'month' ? 30 * 24 * 60 * 60_000
+				: 365 * 24 * 60 * 60_000;
+		return now - n * ms;
+	}
+
+	// "an hour ago", "a day ago"
+	const anMatch = lower.match(/^an?\s+(minute|hour|day|week|month|year)\s+ago$/);
+	if (anMatch) {
+		const unit = anMatch[1];
+		const ms =
+			unit === 'minute' ? 60_000
+				: unit === 'hour' ? 60 * 60_000
+				: unit === 'day' ? 24 * 60 * 60_000
+				: unit === 'week' ? 7 * 24 * 60 * 60_000
+				: unit === 'month' ? 30 * 24 * 60 * 60_000
+				: 365 * 24 * 60 * 60_000;
+		return now - ms;
+	}
+
+	// Try Date.parse on the original — handles "2026-05-29", "2026-05-29T...",
+	// "May 29 2026", "29 May 2026", "May 29", etc.
+	const parsed = Date.parse(trimmed);
+	if (!Number.isNaN(parsed)) {
+		// Sanity: don't accept dates more than 2 days in the future (clock skew
+		// or AI hallucination) or more than 5 years in the past.
+		const fiveYearsAgo = now - 5 * 365 * 24 * 60 * 60_000;
+		const twoDaysAhead = now + 2 * 24 * 60 * 60_000;
+		if (parsed >= fiveYearsAgo && parsed <= twoDaysAhead) return parsed;
+	}
+
+	return null;
 }
