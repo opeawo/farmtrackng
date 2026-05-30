@@ -7,7 +7,7 @@ import { diseases } from '$lib/data/diseases';
 import { livestockTypes } from '$lib/data/livestock-types';
 import { nigerianStates } from '$lib/data/markets';
 
-const MODEL = GEMINI_MODEL || 'gemini-2.0-flash';
+const MODEL = GEMINI_MODEL || 'gemini-flash-latest';
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 

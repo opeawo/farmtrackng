@@ -4,7 +4,7 @@ import { GoogleGenAI, type Part } from '@google/genai';
 import { env } from '$env/dynamic/private';
 const { GEMINI_API_KEY, GEMINI_MODEL } = env;
 
-const MODEL = GEMINI_MODEL || 'gemini-2.0-flash';
+const MODEL = GEMINI_MODEL || 'gemini-flash-latest';
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
