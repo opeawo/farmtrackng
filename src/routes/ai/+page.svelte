@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { user } from '$lib/stores/user';
 	import { livestockTypes } from '$lib/data/livestock-types';
 	import { nigerianStates } from '$lib/data/markets';
 	import { startRecording, stopRecording, transcribeAudio } from '$lib/utils/voice';
@@ -12,8 +14,12 @@
 		AlertTriangle,
 		ShieldAlert,
 		ChevronDown,
+		ChevronUp,
 		ImageOff,
-		X
+		X,
+		History,
+		Trash2,
+		MessageSquare
 	} from 'lucide-svelte';
 
 	interface AiResult {
@@ -23,6 +29,19 @@
 		priceInfo: string | null;
 		sources: string[];
 	}
+
+	interface ChatEntry {
+		id: string;
+		ts: number;
+		question: string;
+		species?: string;
+		state?: string;
+		hadImage: boolean;
+		result: AiResult;
+	}
+
+	const HISTORY_KEY = 'farmtrack:ai-history';
+	const HISTORY_LIMIT = 20;
 
 	const speciesFromUrl = page.url.searchParams.get('species') ?? '';
 	const intentFromUrl = page.url.searchParams.get('intent') ?? '';
@@ -40,6 +59,60 @@
 	let recording = $state(false);
 	let transcribing = $state(false);
 	let sourcesOpen = $state(false);
+
+	let history = $state<ChatEntry[]>([]);
+	let expandedHistoryId = $state<string | null>(null);
+
+	onMount(() => {
+		// Prefill state from the user profile if available.
+		if (!stateName && $user?.state) stateName = $user.state;
+
+		// Load history from localStorage.
+		try {
+			const raw = localStorage.getItem(HISTORY_KEY);
+			if (raw) {
+				const parsed = JSON.parse(raw) as ChatEntry[];
+				if (Array.isArray(parsed)) history = parsed;
+			}
+		} catch {
+			// Corrupt history — start fresh.
+		}
+	});
+
+	function saveHistory(next: ChatEntry[]) {
+		history = next;
+		try {
+			localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+		} catch {
+			// localStorage full or disabled — keep in-memory only.
+		}
+	}
+
+	function clearHistory() {
+		expandedHistoryId = null;
+		saveHistory([]);
+	}
+
+	function reaskFromHistory(entry: ChatEntry) {
+		question = entry.question;
+		species = entry.species ?? '';
+		stateName = entry.state ?? '';
+		imageDataUrl = null; // images aren't persisted
+		expandedHistoryId = null;
+		// Scroll to top for the form
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
+	function formatTimestamp(ts: number): string {
+		const now = Date.now();
+		const diffMin = Math.round((now - ts) / 60_000);
+		if (diffMin < 1) return 'just now';
+		if (diffMin < 60) return `${diffMin}m ago`;
+		const diffH = Math.round(diffMin / 60);
+		if (diffH < 24) return `${diffH}h ago`;
+		const d = new Date(ts);
+		return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' });
+	}
 
 	async function compressImage(file: File): Promise<string> {
 		const bitmap = await createImageBitmap(file);
@@ -108,15 +181,19 @@
 			error = 'Type a question or add a photo.';
 			return;
 		}
+		const currentQuestion = question.trim();
+		const currentSpecies = species || undefined;
+		const currentState = stateName || undefined;
+		const currentHadImage = !!imageDataUrl;
 		loading = true;
 		try {
 			const res = await fetch('/api/ai/query', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					question: question.trim(),
-					species: species || undefined,
-					state: stateName || undefined,
+					question: currentQuestion,
+					species: currentSpecies,
+					state: currentState,
 					imageDataUrl
 				})
 			});
@@ -125,7 +202,19 @@
 				error = data.error ?? 'Something went wrong.';
 				return;
 			}
-			result = data as AiResult;
+			const aiResult = data as AiResult;
+			result = aiResult;
+			// Persist to history (newest first, capped at HISTORY_LIMIT).
+			const entry: ChatEntry = {
+				id: crypto.randomUUID(),
+				ts: Date.now(),
+				question: currentQuestion,
+				species: currentSpecies,
+				state: currentState,
+				hadImage: currentHadImage,
+				result: aiResult
+			};
+			saveHistory([entry, ...history].slice(0, HISTORY_LIMIT));
 		} catch (err) {
 			console.error(err);
 			error = 'Network error. Please try again.';
@@ -146,6 +235,19 @@
 				return null;
 		}
 	});
+
+	function entrySeverityChip(entry: ChatEntry): string | null {
+		switch (entry.result.severity) {
+			case 'urgent':
+				return '🔴';
+			case 'treat':
+				return '🟡';
+			case 'monitor':
+				return '🟢';
+			default:
+				return null;
+		}
+	}
 
 	$effect(() => {
 		if (intentFromUrl === 'image' && fileInput && !imageDataUrl) {
@@ -328,12 +430,77 @@
 				Animal AI gives general guidance. For urgent or unclear cases, please consult a registered veterinarian.
 			</p>
 		</div>
-	{:else if !loading}
+	{:else if !loading && history.length === 0}
 		<div class="bg-white/60 border border-dashed border-base-300 rounded-2xl p-4 flex items-start gap-3">
 			<ImageOff size={18} class="text-base-content/40 mt-0.5 shrink-0" />
 			<p class="text-xs text-base-content/60">
 				Your answer will appear here. Add a photo for better diagnosis, and pick a state if you're asking about market prices.
 			</p>
+		</div>
+	{/if}
+
+	<!-- History -->
+	{#if history.length > 0}
+		<div class="space-y-2">
+			<div class="flex items-center justify-between px-1">
+				<div class="flex items-center gap-2">
+					<History size={14} class="text-base-content/50" />
+					<h2 class="text-sm font-bold text-base-content/80">Recent questions</h2>
+				</div>
+				<button
+					type="button"
+					onclick={clearHistory}
+					class="text-[11px] text-base-content/40 hover:text-error inline-flex items-center gap-1"
+				>
+					<Trash2 size={12} />
+					Clear
+				</button>
+			</div>
+
+			<div class="space-y-2">
+				{#each history as entry (entry.id)}
+					{@const chip = entrySeverityChip(entry)}
+					{@const open = expandedHistoryId === entry.id}
+					<div class="bg-white rounded-2xl shadow-sm border border-base-300/50 overflow-hidden">
+						<button
+							type="button"
+							onclick={() => (expandedHistoryId = open ? null : entry.id)}
+							class="w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-base-200/30 transition-colors"
+						>
+							<MessageSquare size={16} class="text-base-content/30 shrink-0 mt-0.5" />
+							<div class="flex-1 min-w-0">
+								<p class="text-sm font-medium line-clamp-2">{entry.question || '(photo question)'}</p>
+								<p class="text-[11px] text-base-content/50 mt-0.5">
+									{#if chip}<span>{chip}</span>{/if}
+									<span>{formatTimestamp(entry.ts)}</span>
+									{#if entry.species}<span>· {entry.species}</span>{/if}
+									{#if entry.hadImage}<span>· 📷</span>{/if}
+								</p>
+							</div>
+							{#if open}
+								<ChevronUp size={16} class="text-base-content/30 shrink-0 mt-0.5" />
+							{:else}
+								<ChevronDown size={16} class="text-base-content/30 shrink-0 mt-0.5" />
+							{/if}
+						</button>
+						{#if open}
+							<div class="px-4 pb-3 pt-1 space-y-2 border-t border-base-200/60">
+								<p class="text-sm leading-relaxed whitespace-pre-line text-base-content/80">{entry.result.answer}</p>
+								{#if entry.result.priceInfo}
+									<p class="text-xs text-base-content/60"><span class="font-semibold">Price:</span> {entry.result.priceInfo}</p>
+								{/if}
+								<button
+									type="button"
+									onclick={() => reaskFromHistory(entry)}
+									class="text-xs font-semibold text-primary hover:underline"
+								>
+									Ask a follow-up →
+								</button>
+							</div>
+						{/if}
+					</div>
+				{/each}
+			</div>
 		</div>
 	{/if}
 </div>

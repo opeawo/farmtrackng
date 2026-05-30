@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { browser } from '$app/environment';
 
 export interface UserProfile {
 	id: string;
@@ -12,7 +13,33 @@ export interface UserProfile {
 	onboarded: boolean;
 }
 
-export const user = writable<UserProfile | null>(null);
+const USER_STORAGE_KEY = 'farmtrack:user';
+
+function loadUser(): UserProfile | null {
+	if (!browser) return null;
+	try {
+		const raw = localStorage.getItem(USER_STORAGE_KEY);
+		if (!raw) return null;
+		const parsed = JSON.parse(raw) as UserProfile;
+		if (!parsed || typeof parsed !== 'object' || !parsed.id) return null;
+		return parsed;
+	} catch {
+		return null;
+	}
+}
+
+export const user = writable<UserProfile | null>(loadUser());
+
+if (browser) {
+	user.subscribe((value) => {
+		try {
+			if (value) localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(value));
+			else localStorage.removeItem(USER_STORAGE_KEY);
+		} catch {
+			// localStorage full or disabled — ignore. In-memory store still works.
+		}
+	});
+}
 
 export const userLocation = writable<{ lat: number; lng: number } | null>(null);
 

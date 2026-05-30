@@ -1,13 +1,53 @@
 <script lang="ts">
-	import { user } from '$lib/stores/user';
+	import { user, requestLocation } from '$lib/stores/user';
 	import {
 		Sparkles, TrendingUp, AlertTriangle, ShoppingBag,
-		ChevronRight, Leaf, Sun, Moon, Sunset, MapPin, ArrowRight
+		ChevronRight, Leaf, Sun, Moon, Sunset, MapPin, ArrowRight, Loader2
 	} from 'lucide-svelte';
 
 	const hour = new Date().getHours();
 	const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
 	const GreetingIcon = hour < 6 ? Moon : hour < 17 ? Sun : Sunset;
+
+	let detecting = $state(false);
+	let detectError = $state<string | null>(null);
+
+	async function detectLocation() {
+		detectError = null;
+		detecting = true;
+		try {
+			const { lat, lng } = await requestLocation();
+			const res = await fetch('/api/geocode', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ lat, lng })
+			});
+			const data = await res.json();
+			if (!res.ok) {
+				detectError = data.error ?? 'Could not detect your location.';
+				return;
+			}
+			user.update((current) => ({
+				id: current?.id ?? crypto.randomUUID(),
+				fullName: current?.fullName ?? '',
+				phone: current?.phone ?? '',
+				state: data.state ?? '',
+				lga: data.lga ?? '',
+				lat,
+				lng,
+				whatsappOptedIn: current?.whatsappOptedIn ?? false,
+				onboarded: true
+			}));
+		} catch (err) {
+			console.error(err);
+			detectError =
+				err instanceof Error && err.message.includes('denied')
+					? 'Location permission denied.'
+					: 'Could not detect your location.';
+		} finally {
+			detecting = false;
+		}
+	}
 
 	const tips = [
 		'Regular deworming every 3 months keeps livestock healthy and productive.',
@@ -46,16 +86,30 @@
 		<span class="text-white/70 text-sm">{greeting}</span>
 	</div>
 	{#if $user?.state}
-		<div class="flex items-center gap-2">
+		<button type="button" onclick={detectLocation} disabled={detecting} class="flex items-center gap-2 text-left">
 			<MapPin size={22} class="text-white/80" />
 			<h1 class="text-2xl font-bold">{$user.state}{$user.lga ? ` · ${$user.lga}` : ''}</h1>
-		</div>
+			{#if detecting}<Loader2 size={16} class="text-white/70 animate-spin" />{/if}
+		</button>
 	{:else}
-		<a href="/onboard" class="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 transition-colors rounded-full pl-3 pr-2 py-1.5 mt-1">
-			<MapPin size={16} class="text-white/80" />
-			<span class="text-sm font-medium">Set your location</span>
-			<ArrowRight size={14} class="text-white/70" />
-		</a>
+		<button
+			type="button"
+			onclick={detectLocation}
+			disabled={detecting}
+			class="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 transition-colors rounded-full pl-3 pr-2 py-1.5 mt-1 disabled:opacity-70"
+		>
+			{#if detecting}
+				<Loader2 size={16} class="text-white/80 animate-spin" />
+				<span class="text-sm font-medium">Detecting…</span>
+			{:else}
+				<MapPin size={16} class="text-white/80" />
+				<span class="text-sm font-medium">Set your location</span>
+				<ArrowRight size={14} class="text-white/70" />
+			{/if}
+		</button>
+	{/if}
+	{#if detectError}
+		<p class="text-xs text-white/80 mt-2">{detectError}</p>
 	{/if}
 </div>
 
