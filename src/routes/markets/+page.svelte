@@ -2,35 +2,75 @@
 	import { onMount } from 'svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import { livestockTypes } from '$lib/data/livestock-types';
-	import { Plus, ExternalLink, RefreshCw, AlertCircle, Facebook } from 'lucide-svelte';
+	import { Plus, ExternalLink, RefreshCw, AlertCircle } from 'lucide-svelte';
+
+	type SourceId = 'jiji' | 'poultry-plaza';
+	type ListingCategory =
+		| 'poultry'
+		| 'cattle'
+		| 'goat'
+		| 'sheep'
+		| 'pig'
+		| 'fish'
+		| 'feed'
+		| 'eggs'
+		| 'other';
 
 	interface Listing {
+		source: SourceId;
 		title: string;
 		priceNgn: number;
+		unit?: string;
 		location: string;
 		postedAt: string;
 		url: string;
-		category: 'poultry' | 'cattle' | 'goat' | 'sheep' | 'pig' | 'fish' | 'other';
+		category: ListingCategory;
+	}
+
+	interface SourceInfo {
+		id: SourceId;
+		label: string;
+		url: string;
 	}
 
 	interface PricesResponse {
 		fetchedAt: string;
-		source: string;
+		sources: SourceInfo[];
 		listings: Listing[];
+		partialErrors: { source: SourceId; message: string }[];
 		stale: boolean;
 		error?: string;
 	}
 
-	let selectedAnimal = $state('all');
+	const CATEGORY_OPTIONS: { id: 'all' | ListingCategory; label: string; icon: string }[] = [
+		{ id: 'all', label: 'All', icon: '🛒' },
+		{ id: 'poultry', label: 'Poultry', icon: '🐔' },
+		{ id: 'cattle', label: 'Cattle', icon: '🐄' },
+		{ id: 'goat', label: 'Goat', icon: '🐐' },
+		{ id: 'sheep', label: 'Sheep', icon: '🐑' },
+		{ id: 'pig', label: 'Pig', icon: '🐷' },
+		{ id: 'fish', label: 'Fish', icon: '🐟' },
+		{ id: 'eggs', label: 'Eggs', icon: '🥚' },
+		{ id: 'feed', label: 'Feed', icon: '🌾' }
+	];
+
+	const SOURCE_BADGE: Record<SourceId, { label: string; cls: string }> = {
+		jiji: { label: 'Jiji', cls: 'bg-accent/10 text-accent border-accent/30' },
+		'poultry-plaza': {
+			label: 'Poultry Plaza',
+			cls: 'bg-[#1877f2]/10 text-[#1877f2] border-[#1877f2]/30'
+		}
+	};
+
+	let selectedCategory = $state<'all' | ListingCategory>('all');
 	let loading = $state(true);
 	let response = $state<PricesResponse | null>(null);
 	let loadError = $state<string | null>(null);
 
-	const filtered = $derived.by(() => {
+	const visibleListings = $derived.by(() => {
 		if (!response) return [] as Listing[];
-		if (selectedAnimal === 'all') return response.listings;
-		return response.listings.filter((l) => l.category === selectedAnimal);
+		if (selectedCategory === 'all') return response.listings;
+		return response.listings.filter((l) => l.category === selectedCategory);
 	});
 
 	async function loadPrices() {
@@ -70,52 +110,58 @@
 <PageHeader title="Market Prices" />
 
 <div class="px-4 py-4 space-y-4 pb-28">
-	<!-- Filters + freshness -->
+	<!-- Category filter (horizontal scroll on mobile) -->
 	<div class="flex items-center gap-2">
-		<select bind:value={selectedAnimal} class="select select-bordered select-sm flex-1">
-			<option value="all">All Animals</option>
-			{#each livestockTypes as type}
-				<option value={type.id}>{type.icon} {type.name}</option>
+		<div class="flex-1 flex gap-1.5 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1">
+			{#each CATEGORY_OPTIONS as opt (opt.id)}
+				<button
+					type="button"
+					onclick={() => (selectedCategory = opt.id)}
+					class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors {selectedCategory === opt.id
+						? 'bg-primary text-white border-primary'
+						: 'bg-white text-base-content/70 border-base-300 hover:bg-base-100'}"
+				>
+					<span class="mr-1">{opt.icon}</span>{opt.label}
+				</button>
 			{/each}
-		</select>
+		</div>
 		<button
 			type="button"
 			onclick={loadPrices}
 			disabled={loading}
-			class="btn btn-ghost btn-sm gap-1"
+			class="btn btn-ghost btn-sm gap-1 shrink-0"
 			aria-label="Refresh prices"
 		>
 			<RefreshCw size={14} class={loading ? 'animate-spin' : ''} />
 		</button>
 	</div>
 
+	<!-- Freshness + sources -->
 	{#if response}
-		<p class="text-[11px] text-base-content/50 -mt-2 flex items-center gap-1.5">
+		<div class="text-[11px] text-base-content/50 -mt-1 space-y-0.5">
 			{#if response.stale}
-				<AlertCircle size={12} class="text-warning" />
-				<span class="text-warning">Showing cached data</span> — last fetch {formatFetched(response.fetchedAt)}
+				<p class="flex items-center gap-1.5">
+					<AlertCircle size={12} class="text-warning" />
+					<span class="text-warning">Showing cached data</span> — last fetch {formatFetched(response.fetchedAt)}
+				</p>
 			{:else}
-				Last updated {formatFetched(response.fetchedAt)} · Source: jiji.ng
+				<p>Last updated {formatFetched(response.fetchedAt)}</p>
 			{/if}
-		</p>
+			<p>
+				Sources: {#each response.sources as s, i (s.id)}{i > 0 ? ' · ' : ''}<a
+						href={s.url}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="hover:text-base-content/80 underline-offset-2 hover:underline">{s.label}</a
+					>{/each}
+			</p>
+			{#if response.partialErrors.length > 0}
+				<p class="text-warning">
+					Some sources unavailable: {response.partialErrors.map((e) => e.source).join(', ')}
+				</p>
+			{/if}
+		</div>
 	{/if}
-
-	<!-- Poultry Plaza external link -->
-	<a
-		href="https://www.facebook.com/poultryplaza"
-		target="_blank"
-		rel="noopener noreferrer"
-		class="group flex items-center gap-3 bg-gradient-to-br from-[#1877f2]/10 to-[#1877f2]/5 border border-[#1877f2]/20 rounded-2xl p-4 active:scale-[0.99] transition-transform"
-	>
-		<div class="w-10 h-10 rounded-full bg-[#1877f2]/15 flex items-center justify-center shrink-0">
-			<Facebook size={20} class="text-[#1877f2]" />
-		</div>
-		<div class="flex-1 min-w-0">
-			<p class="font-semibold text-sm">Poultry Plaza on Facebook</p>
-			<p class="text-xs text-base-content/60">Latest market reports posted by the trader community</p>
-		</div>
-		<ExternalLink size={16} class="text-base-content/40 group-hover:text-base-content/70" />
-	</a>
 
 	<!-- Listings -->
 	{#if loading && !response}
@@ -131,13 +177,14 @@
 			actionLabel="Submit Price"
 			actionHref="/markets/submit"
 		/>
-	{:else if filtered.length === 0}
+	{:else if visibleListings.length === 0}
 		<div class="text-center py-8 text-sm text-base-content/50">
 			No listings in this category right now. Try another filter.
 		</div>
 	{:else}
 		<div class="space-y-2">
-			{#each filtered as listing (listing.url)}
+			{#each visibleListings as listing (listing.url + listing.title)}
+				{@const badge = SOURCE_BADGE[listing.source]}
 				<a
 					href={listing.url}
 					target="_blank"
@@ -149,19 +196,24 @@
 							<h3 class="font-semibold text-sm line-clamp-2">{listing.title}</h3>
 							<p class="text-xs text-base-content/60 mt-1">{listing.location}</p>
 						</div>
-						<span class="font-bold text-primary whitespace-nowrap">{formatNgn(listing.priceNgn)}</span>
+						<div class="text-right shrink-0">
+							<p class="font-bold text-primary whitespace-nowrap">{formatNgn(listing.priceNgn)}</p>
+							{#if listing.unit}<p class="text-[11px] text-base-content/50 whitespace-nowrap">{listing.unit}</p>{/if}
+						</div>
 					</div>
 					<div class="flex items-center justify-between mt-2">
-						<p class="text-[11px] text-base-content/40">{listing.postedAt}</p>
+						<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border {badge.cls}">
+							{badge.label}
+						</span>
 						<span class="text-[11px] text-base-content/40 inline-flex items-center gap-1">
-							jiji.ng <ExternalLink size={10} />
+							{listing.postedAt}<ExternalLink size={10} />
 						</span>
 					</div>
 				</a>
 			{/each}
 		</div>
 		<p class="text-[11px] text-center text-base-content/40 pt-2">
-			Prices are listing-by-listing from sellers on Jiji. Confirm with the seller before relying on them.
+			Prices pulled daily from Jiji and Poultry Plaza. Confirm with the seller before relying on them.
 		</p>
 	{/if}
 </div>
