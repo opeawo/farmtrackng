@@ -22,6 +22,7 @@
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
+		"@google/genai": "^2.7.0",
 		"@supabase/supabase-js": "^2.95.3",
 		"@sveltejs/adapter-vercel": "^6.3.1",
 		"@tailwindcss/vite": "^4.1.18",
@@ -32,7 +33,6 @@
 		"idb": "^8.0.3",
 		"lucide-svelte": "^0.564.0",
 		"mapbox-gl": "^3.18.1",
-		"openai": "^6.22.0",
 		"tailwindcss": "^4.1.18",
 		"workbox-background-sync": "^7.4.0",
 		"workbox-expiration": "^7.4.0",

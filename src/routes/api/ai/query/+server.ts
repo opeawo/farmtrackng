@@ -1,12 +1,15 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import OpenAI from 'openai';
-import { OPENAI_API_KEY } from '$env/static/private';
+import { GoogleGenAI, Type, type Part } from '@google/genai';
+import { env } from '$env/dynamic/private';
+const { GEMINI_API_KEY, GEMINI_MODEL } = env;
 import { diseases } from '$lib/data/diseases';
 import { livestockTypes } from '$lib/data/livestock-types';
 import { nigerianStates } from '$lib/data/markets';
 
-const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+const MODEL = GEMINI_MODEL || 'gemini-2.0-flash';
+
+const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 interface AiQueryBody {
 	question?: string;
@@ -34,6 +37,19 @@ Rules:
 - If you are unsure or the question is outside your knowledge, say "Please consult a registered veterinarian." in the answer.
 - The "sources" array is a short list of background topics you drew on (e.g. "Newcastle Disease (FarmTrack disease library)", "Lagos markets (FarmTrack markets data)"). Keep it under 4 items.
 - Return ONLY a JSON object with keys: answer, severity, drugMentioned, priceInfo, sources. No prose outside the JSON.`;
+
+const RESPONSE_SCHEMA = {
+	type: Type.OBJECT,
+	properties: {
+		answer: { type: Type.STRING },
+		severity: { type: Type.STRING, nullable: true, enum: ['monitor', 'treat', 'urgent'] },
+		drugMentioned: { type: Type.BOOLEAN },
+		priceInfo: { type: Type.STRING, nullable: true },
+		sources: { type: Type.ARRAY, items: { type: Type.STRING } }
+	},
+	required: ['answer', 'drugMentioned', 'sources'],
+	propertyOrdering: ['answer', 'severity', 'drugMentioned', 'priceInfo', 'sources']
+};
 
 function buildContext(species?: string, state?: string): string {
 	const relevantDiseases = species
@@ -71,6 +87,12 @@ Markets context:
 ${marketsLine}`;
 }
 
+function parseImageDataUrl(dataUrl: string): { mimeType: string; data: string } | null {
+	const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+	if (!match) return null;
+	return { mimeType: match[1], data: match[2] };
+}
+
 export const POST: RequestHandler = async ({ request }) => {
 	let body: AiQueryBody;
 	try {
@@ -86,31 +108,28 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const context = buildContext(body.species, body.state);
 
-	const userContent: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
-		{
-			type: 'text',
-			text: `${context}\n\nFARMER QUESTION:\n${question || '(no text, see attached photo)'}`
-		}
+	const parts: Part[] = [
+		{ text: `${context}\n\nFARMER QUESTION:\n${question || '(no text, see attached photo)'}` }
 	];
 
-	if (body.imageDataUrl && body.imageDataUrl.startsWith('data:image/')) {
-		userContent.push({
-			type: 'image_url',
-			image_url: { url: body.imageDataUrl }
-		});
+	if (body.imageDataUrl) {
+		const image = parseImageDataUrl(body.imageDataUrl);
+		if (image) parts.push({ inlineData: image });
 	}
 
 	try {
-		const completion = await openai.chat.completions.create({
-			model: 'gpt-4o',
-			response_format: { type: 'json_object' },
-			messages: [
-				{ role: 'system', content: SYSTEM_PROMPT },
-				{ role: 'user', content: userContent }
-			]
+		const response = await ai.models.generateContent({
+			model: MODEL,
+			contents: [{ role: 'user', parts }],
+			config: {
+				systemInstruction: SYSTEM_PROMPT,
+				responseMimeType: 'application/json',
+				responseSchema: RESPONSE_SCHEMA,
+				temperature: 0.4
+			}
 		});
 
-		const raw = completion.choices[0]?.message?.content ?? '{}';
+		const raw = response.text ?? '{}';
 		let parsed: Partial<AiQueryResult> = {};
 		try {
 			parsed = JSON.parse(raw) as Partial<AiQueryResult>;
@@ -129,15 +148,16 @@ export const POST: RequestHandler = async ({ request }) => {
 					? severity
 					: null,
 			drugMentioned: Boolean(parsed.drugMentioned),
-			priceInfo: typeof parsed.priceInfo === 'string' && parsed.priceInfo.length > 0
-				? parsed.priceInfo
-				: null,
+			priceInfo:
+				typeof parsed.priceInfo === 'string' && parsed.priceInfo.length > 0
+					? parsed.priceInfo
+					: null,
 			sources: Array.isArray(parsed.sources) ? parsed.sources.slice(0, 4).map(String) : []
 		};
 
 		return json(result);
 	} catch (err) {
-		console.error('[api/ai/query] OpenAI call failed', err);
+		console.error('[api/ai/query] Gemini call failed', err);
 		return json(
 			{ error: 'The AI is unavailable right now. Please try again in a moment.' },
 			{ status: 500 }
