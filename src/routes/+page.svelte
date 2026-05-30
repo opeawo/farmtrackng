@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { user, requestLocation } from '$lib/stores/user';
 	import {
 		Sparkles, TrendingUp, AlertTriangle, ShoppingBag,
@@ -49,22 +50,60 @@
 		}
 	}
 
-	const tips = [
-		'Regular deworming every 3 months keeps livestock healthy and productive.',
-		'Vaccinate chickens against Newcastle Disease every 3–4 months — it is the biggest killer of poultry in Nigeria.',
-		'Always quarantine new animals for at least 14 days before mixing them with your herd.',
-		'Clean drinking water cuts disease risk more than any single medication. Change water twice daily.',
-		'Store feed off the ground on pallets to keep moisture and rats out — mouldy feed causes liver damage.',
-		'In the dry season, vaccinate small ruminants against PPR before the herd starts moving for grazing.',
-		'Check your animals at the same time every day. Early signs of sickness — droopy ears, not eating — are easy to miss.',
-		'Record sales and feed costs weekly. Margins shift fast when feed prices move.',
-		'Foot rot in sheep spreads in wet pens. Keep bedding dry and trim hooves monthly.',
-		'Hot afternoons drop layer hen egg production. Provide shade and cool drinking water in the heat.'
-	];
-	const dayOfYear = Math.floor(
-		(Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86_400_000
-	);
-	const tipOfDay = tips[dayOfYear % tips.length];
+	// AI-powered Tip of the day. Generates once per calendar day per browser,
+	// cached in localStorage. Falls back to a safe default if the API is unreachable.
+	const FALLBACK_TIP =
+		'Clean drinking water cuts disease risk more than any single medication. Change water twice daily.';
+
+	let tipOfDay = $state(FALLBACK_TIP);
+
+	function todayKey(): string {
+		const d = new Date();
+		return `farmtrack:tip:${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+	}
+
+	function dayOfYearNum(): number {
+		return Math.floor(
+			(Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86_400_000
+		);
+	}
+
+	onMount(async () => {
+		const key = todayKey();
+		try {
+			const cached = localStorage.getItem(key);
+			if (cached) {
+				tipOfDay = cached;
+				return;
+			}
+		} catch {
+			// localStorage disabled — fall through to fetch.
+		}
+
+		try {
+			const res = await fetch('/api/ai/tip', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					species: undefined,
+					state: $user?.state || undefined,
+					dayOfYear: dayOfYearNum()
+				})
+			});
+			if (!res.ok) return;
+			const data = (await res.json()) as { tip?: string };
+			if (typeof data.tip === 'string' && data.tip.length > 0) {
+				tipOfDay = data.tip;
+				try {
+					localStorage.setItem(key, data.tip);
+				} catch {
+					// quota / disabled — ignore
+				}
+			}
+		} catch {
+			// network / API unavailable — keep fallback
+		}
+	});
 </script>
 
 <!-- Hero Header -->
@@ -167,4 +206,11 @@
 		<p class="text-xs font-semibold text-accent mb-1">Tip of the day</p>
 		<p class="text-sm text-base-content/70">{tipOfDay}</p>
 	</div>
+
+	<!-- Footer links -->
+	<p class="text-[11px] text-center text-base-content/40 pt-2">
+		<a href="/about" class="hover:text-base-content/70">About</a>
+		<span class="mx-1">·</span>
+		<a href="/terms" class="hover:text-base-content/70">Terms</a>
+	</p>
 </div>
