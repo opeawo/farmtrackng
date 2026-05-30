@@ -125,5 +125,7 @@
 
 	<p class="text-[11px] text-center text-base-content/40 pt-2">
 		<a href="/terms" class="hover:text-base-content/70">Terms &amp; Conditions</a>
+		<span class="mx-1">·</span>
+		<a href="/privacy" class="hover:text-base-content/70">Privacy Policy</a>
 	</p>
 </div>

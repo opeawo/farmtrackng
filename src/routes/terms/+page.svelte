@@ -135,7 +135,7 @@
 	<section class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-2">
 		<h2 class="font-bold text-base">8. Your account and information</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			You are responsible for keeping your account details secure and for activity under your account. We handle personal information responsibly and will publish a full privacy policy in a future update; that policy will form part of these Terms when published.
+			You are responsible for keeping your account details secure and for activity under your account. We handle personal information in line with our <a href="/privacy" class="text-primary hover:underline">Privacy Policy</a>, which forms part of these Terms.
 		</p>
 	</section>
 
@@ -179,5 +179,7 @@
 
 	<p class="text-[11px] text-center text-base-content/40">
 		<a href="/about" class="hover:text-base-content/70">About FarmTrack</a>
+		<span class="mx-1">·</span>
+		<a href="/privacy" class="hover:text-base-content/70">Privacy Policy</a>
 	</p>
 </div>
