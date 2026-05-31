@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { equipment, formatNgn, downPayment } from '$lib/data/equipment';
 	import { ShoppingBag, ChevronRight, Wallet } from 'lucide-svelte';
+	import SEO from '$lib/components/ui/SEO.svelte';
 </script>
+
+<SEO
+	title="Equipment Marketplace — 30% down, rest in installments"
+	description="Buy poultry processing equipment in Nigeria with flexible financing. Poultry processor, defeathering machine, electric chicken cutter — 30% down, balance in installments paid on WhatsApp."
+	canonicalPath="/marketplace"
+/>
 
 <!-- Hero -->
 <div class="bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#40916c] text-white px-5 pt-6 pb-8 rounded-b-[2rem]">

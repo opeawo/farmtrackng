@@ -5,6 +5,7 @@
 	import { livestockTypes } from '$lib/data/livestock-types';
 	import { nigerianStates } from '$lib/data/markets';
 	import { startRecording, stopRecording, transcribeAudio } from '$lib/utils/voice';
+	import SEO from '$lib/components/ui/SEO.svelte';
 	import {
 		Sparkles,
 		Camera,
@@ -255,6 +256,12 @@
 		}
 	});
 </script>
+
+<SEO
+	title="Animal AI — Diagnose, price, advise"
+	description="Ask FarmTrack's Animal AI about livestock health, husbandry, drug guidance, and prices. Add a photo for visual diagnosis. Built for Nigerian poultry, cattle, goats, sheep and pigs."
+	canonicalPath="/ai"
+/>
 
 <!-- Hero -->
 <div class="bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#40916c] text-white px-5 pt-6 pb-8 rounded-b-[2rem]">

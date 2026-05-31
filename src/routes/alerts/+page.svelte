@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import SEO from '$lib/components/ui/SEO.svelte';
 	import { AlertTriangle, MapPin, Plus } from 'lucide-svelte';
 
 	// In production, fetch from Supabase disease_alerts
@@ -15,6 +16,12 @@
 		reported_at: string;
 	}>>([]);
 </script>
+
+<SEO
+	title="Nigerian Livestock Disease Alerts"
+	description="Nearby outbreak warnings for poultry, cattle, goats, sheep and pigs across Nigeria. Report a suspected outbreak so neighbours can act fast."
+	canonicalPath="/alerts"
+/>
 
 <PageHeader title="Disease Alerts" />
 

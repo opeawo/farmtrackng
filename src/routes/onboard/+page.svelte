@@ -4,6 +4,7 @@
 	import { livestockTypes } from '$lib/data/livestock-types';
 	import { nigerianStates } from '$lib/data/markets';
 	import { ChevronRight, ChevronLeft } from 'lucide-svelte';
+	import SEO from '$lib/components/ui/SEO.svelte';
 
 	let step = $state(1);
 	let fullName = $state('');
@@ -47,6 +48,8 @@
 		goto('/');
 	}
 </script>
+
+<SEO title="Welcome to FarmTrack" description="Set up your FarmTrack profile." noindex canonicalPath="/onboard" />
 
 <div class="min-h-screen bg-primary flex flex-col">
 	<div class="px-6 pt-8 pb-4">

@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { Leaf, ChevronLeft, Mail, Globe, MapPin, Heart } from 'lucide-svelte';
+	import SEO from '$lib/components/ui/SEO.svelte';
 </script>
 
-<svelte:head>
-	<title>About FarmTrack</title>
-	<meta name="description" content="FarmTrack — Healthier animals. Fewer losses. Better decisions. Built for Nigerian farmers and animal health workers by FastForward Livestock Venture Studio." />
-</svelte:head>
+<SEO
+	title="About FarmTrack — Healthier animals, fewer losses"
+	description="FarmTrack is built by FastForward Livestock Venture Studio for Nigerian farmers and animal health workers. Backed by SAIS, implemented by GIZ on behalf of the German Government."
+	canonicalPath="/about"
+/>
 
 <!-- Hero -->
 <div class="bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#40916c] text-white px-5 pt-6 pb-10 rounded-b-[2rem]">

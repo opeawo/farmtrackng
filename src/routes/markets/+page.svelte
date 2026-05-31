@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import SEO from '$lib/components/ui/SEO.svelte';
 	import { Plus, ExternalLink, RefreshCw, AlertCircle } from 'lucide-svelte';
 
 	type SourceId = 'jiji' | 'poultry-plaza';
@@ -106,6 +107,12 @@
 
 	onMount(loadPrices);
 </script>
+
+<SEO
+	title="Nigerian Livestock & Poultry Market Prices"
+	description="Live livestock and poultry market prices in Nigeria — pulled daily from Jiji and Poultry Plaza. Broilers, layers, eggs, feed, cattle, goats, sheep and pigs with location and posted date."
+	canonicalPath="/markets"
+/>
 
 <PageHeader title="Market Prices" />
 

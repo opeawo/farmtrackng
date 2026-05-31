@@ -1,7 +1,10 @@
 <script lang="ts">
 	import type { ActionData } from './$types';
+	import SEO from '$lib/components/ui/SEO.svelte';
 	let { form }: { form: ActionData } = $props();
 </script>
+
+<SEO title="Loan Portal" description="Check your FarmTrack loan status." noindex canonicalPath="/loans" />
 
 <div class="card bg-base-100 shadow-sm">
 	<div class="card-body">

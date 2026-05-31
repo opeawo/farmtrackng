@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { user, requestLocation } from '$lib/stores/user';
+	import SEO from '$lib/components/ui/SEO.svelte';
 	import {
 		Sparkles, TrendingUp, AlertTriangle, ShoppingBag,
 		ChevronRight, Leaf, Sun, Moon, Sunset, MapPin, ArrowRight, Loader2,
@@ -108,6 +109,12 @@
 		}
 	});
 </script>
+
+<SEO
+	titleFull="FarmTrack — Animal AI, market prices & equipment for Nigerian farmers"
+	description="Ask FarmTrack's Animal AI about livestock health, check live market prices for poultry and cattle, and buy processing equipment with 30% down. Built for Nigerian farmers and animal health workers."
+	canonicalPath="/"
+/>
 
 <!-- Hero Header -->
 <div class="bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#40916c] text-white px-5 pt-6 pb-10 rounded-b-[2rem]">

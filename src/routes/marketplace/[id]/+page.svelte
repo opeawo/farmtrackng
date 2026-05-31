@@ -6,12 +6,45 @@
 		whatsappBuyUrl
 	} from '$lib/data/equipment';
 	import { ArrowLeft, Check, Wallet, MessageCircle } from 'lucide-svelte';
+	import SEO from '$lib/components/ui/SEO.svelte';
+	import { SITE, absoluteUrl } from '$lib/seo';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 	const item = $derived(data.item);
 	const buyUrl = $derived(whatsappBuyUrl(item));
+
+	const productJsonLd = $derived(
+		JSON.stringify({
+			'@context': 'https://schema.org',
+			'@type': 'Product',
+			name: item.name,
+			description: item.tagline,
+			image: absoluteUrl(item.image),
+			brand: { '@type': 'Brand', name: SITE.name },
+			offers: {
+				'@type': 'Offer',
+				priceCurrency: 'NGN',
+				price: item.priceNgn,
+				url: absoluteUrl(`/marketplace/${item.id}`),
+				availability: 'https://schema.org/InStock',
+				priceValidUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+			}
+		}).replace(/</g, '\\u003c')
+	);
 </script>
+
+<SEO
+	title={item.name}
+	description={`${item.tagline}. ${formatNgn(item.priceNgn)} — pay 30% down (${formatNgn(downPayment(item.priceNgn))}), balance in installments.`}
+	canonicalPath={`/marketplace/${item.id}`}
+	ogImage={item.image}
+	ogType="product"
+/>
+
+<svelte:head>
+	{@html `<script type="application/ld+json">${productJsonLd}</script>`}
+</svelte:head>
 
 <!-- Hero image -->
 <div class="relative">

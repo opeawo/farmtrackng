@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { ChevronLeft, Leaf, AlertTriangle } from 'lucide-svelte';
+	import SEO from '$lib/components/ui/SEO.svelte';
 
 	const LAST_UPDATED = 'May 2026';
 </script>
 
-<svelte:head>
-	<title>Terms and Conditions — FarmTrack</title>
-	<meta name="description" content="Terms and conditions for using FarmTrack." />
-</svelte:head>
+<SEO
+	title="Terms and Conditions"
+	description="Terms and conditions for using the FarmTrack app and services — what it does, what it doesn't, and your responsibilities."
+	canonicalPath="/terms"
+/>
 
 <!-- Hero -->
 <div class="bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#40916c] text-white px-5 pt-6 pb-10 rounded-b-[2rem]">
