@@ -111,8 +111,8 @@
 </script>
 
 <SEO
-	titleFull="FarmTrack — Animal AI, market prices & equipment for Nigerian farmers"
-	description="Ask FarmTrack's Animal AI about livestock health, check live market prices for poultry and cattle, and buy processing equipment with 30% down. Built for Nigerian farmers and animal health workers."
+	titleFull="FarmPaddy — Animal AI, market prices & equipment for Nigerian farmers"
+	description="Ask FarmPaddy's Animal AI about livestock health, check live market prices for poultry and cattle, and buy processing equipment with 30% down. Built for Nigerian farmers and animal health workers."
 	canonicalPath="/"
 />
 
@@ -123,7 +123,7 @@
 			<div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
 				<Leaf size={18} class="text-white" />
 			</div>
-			<span class="font-bold text-lg tracking-tight">FarmTrack</span>
+			<span class="font-bold text-lg tracking-tight">FarmPaddy</span>
 		</div>
 		<button
 			type="button"
@@ -270,7 +270,7 @@
 						<Info size={18} class="text-primary" />
 					</div>
 					<div class="flex-1">
-						<p class="text-sm font-semibold">About FarmTrack</p>
+						<p class="text-sm font-semibold">About FarmPaddy</p>
 						<p class="text-xs text-base-content/50">Story, supporters, and contact</p>
 					</div>
 					<ChevronRight size={16} class="text-base-content/30" />
@@ -307,7 +307,7 @@
 				</a>
 			</div>
 
-			<p class="text-[11px] text-center text-base-content/40 pt-4 pb-2">FarmTrack — Nigeria</p>
+			<p class="text-[11px] text-center text-base-content/40 pt-4 pb-2">FarmPaddy — Nigeria</p>
 		</div>
 	</div>
 {/if}

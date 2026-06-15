@@ -1,4 +1,4 @@
-# FarmTrack robots policy
+# FarmPaddy robots policy
 # Public pages are indexable; private/account flows are not.
 
 User-agent: *

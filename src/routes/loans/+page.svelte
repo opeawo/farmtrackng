@@ -4,7 +4,7 @@
 	let { form }: { form: ActionData } = $props();
 </script>
 
-<SEO title="Loan Portal" description="Check your FarmTrack loan status." noindex canonicalPath="/loans" />
+<SEO title="Loan Portal" description="Check your FarmPaddy loan status." noindex canonicalPath="/loans" />
 
 <div class="card bg-base-100 shadow-sm">
 	<div class="card-body">

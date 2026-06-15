@@ -1,4 +1,4 @@
-// Dynamic sitemap covering the public surface of FarmTrack.
+// Dynamic sitemap covering the public surface of FarmPaddy.
 // Includes each marketplace item so search engines can index them individually.
 
 import type { RequestHandler } from './$types';

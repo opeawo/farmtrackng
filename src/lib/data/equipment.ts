@@ -393,7 +393,7 @@ export function whatsappBuyUrl(item: Equipment): string {
 	const balance = formatNgn(balanceAmount(item.priceNgn));
 	const total = formatNgn(item.priceNgn);
 	const message =
-		`Hello FarmTrack, I'm interested in buying the ${item.name} (${total}).\n\n` +
+		`Hello FarmPaddy, I'm interested in buying the ${item.name} (${total}).\n\n` +
 		`I'd like to pay the 30% down payment of ${down} and spread the remaining ${balance} in installments.\n\n` +
 		`Please send me the next steps.`;
 	return `https://wa.me/${SALES_WHATSAPP}?text=${encodeURIComponent(message)}`;

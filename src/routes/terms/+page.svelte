@@ -7,7 +7,7 @@
 
 <SEO
 	title="Terms and Conditions"
-	description="Terms and conditions for using the FarmTrack app and services — what it does, what it doesn't, and your responsibilities."
+	description="Terms and conditions for using the FarmPaddy app and services — what it does, what it doesn't, and your responsibilities."
 	canonicalPath="/terms"
 />
 
@@ -21,7 +21,7 @@
 		<div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
 			<Leaf size={18} class="text-white" />
 		</div>
-		<span class="font-bold text-lg tracking-tight">FarmTrack</span>
+		<span class="font-bold text-lg tracking-tight">FarmPaddy</span>
 	</div>
 	<h1 class="text-2xl font-bold leading-tight">Terms and Conditions</h1>
 	<p class="text-white/70 text-sm mt-1">Last updated: {LAST_UPDATED}</p>
@@ -30,7 +30,7 @@
 <div class="px-4 -mt-4 space-y-4 pb-24 max-w-2xl mx-auto">
 	<div class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-3">
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			Welcome to FarmTrack. These Terms and Conditions ("Terms") explain the rules for using the FarmTrack app and services ("FarmTrack", "the Service", "we", "us", "our"). By using FarmTrack, you agree to these Terms. If you do not agree, please do not use the Service.
+			Welcome to FarmPaddy. These Terms and Conditions ("Terms") explain the rules for using the FarmPaddy app and services ("FarmPaddy", "the Service", "we", "us", "our"). By using FarmPaddy, you agree to these Terms. If you do not agree, please do not use the Service.
 		</p>
 		<p class="text-sm text-base-content/80 leading-relaxed">
 			Please read this carefully — especially the sections on the limits of our guidance and your own responsibility.
@@ -39,15 +39,15 @@
 
 	<!-- Section 1 -->
 	<section class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-2">
-		<h2 class="font-bold text-base">1. What FarmTrack is — and what it is not</h2>
+		<h2 class="font-bold text-base">1. What FarmPaddy is — and what it is not</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			FarmTrack provides <span class="font-semibold">general information and guidance</span> on animal health, husbandry, feeding, and disease prevention to help you make better decisions and know when to seek help.
+			FarmPaddy provides <span class="font-semibold">general information and guidance</span> on animal health, husbandry, feeding, and disease prevention to help you make better decisions and know when to seek help.
 		</p>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			FarmTrack is <span class="font-semibold">not</span> a veterinarian and <span class="font-semibold">does not provide veterinary, medical, or professional services</span>. Using FarmTrack does not create a vet–client–patient relationship. Our guidance is for general information only and is <span class="font-semibold">not a diagnosis, prescription, or treatment plan</span> for any specific animal.
+			FarmPaddy is <span class="font-semibold">not</span> a veterinarian and <span class="font-semibold">does not provide veterinary, medical, or professional services</span>. Using FarmPaddy does not create a vet–client–patient relationship. Our guidance is for general information only and is <span class="font-semibold">not a diagnosis, prescription, or treatment plan</span> for any specific animal.
 		</p>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			For diagnosis, treatment, medication, and emergencies, you must consult a licensed veterinarian or qualified animal health professional. FarmTrack is a starting point, not a substitute for professional care.
+			For diagnosis, treatment, medication, and emergencies, you must consult a licensed veterinarian or qualified animal health professional. FarmPaddy is a starting point, not a substitute for professional care.
 		</p>
 	</section>
 
@@ -55,7 +55,7 @@
 	<section class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-2">
 		<h2 class="font-bold text-base">2. Our best efforts — and the limits of our information</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			We work hard to make the information in FarmTrack accurate, current, and useful, and we apply our best efforts to that end. However:
+			We work hard to make the information in FarmPaddy accurate, current, and useful, and we apply our best efforts to that end. However:
 		</p>
 		<ul class="text-sm text-base-content/80 list-disc pl-5 space-y-1">
 			<li>Animal health is complex, and every animal and situation is different.</li>
@@ -75,28 +75,28 @@
 			<h2 class="font-bold text-base">3. Use at your own risk</h2>
 		</div>
 		<p class="text-sm text-base-content/80 leading-relaxed font-semibold">
-			You use FarmTrack, and act on its guidance, entirely at your own risk.
+			You use FarmPaddy, and act on its guidance, entirely at your own risk.
 		</p>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			You are solely responsible for any decision you make and any action you take based on information from FarmTrack — including decisions about your animals, treatments, medications, purchases, or sales. We are not responsible for outcomes that result from your use of the Service.
+			You are solely responsible for any decision you make and any action you take based on information from FarmPaddy — including decisions about your animals, treatments, medications, purchases, or sales. We are not responsible for outcomes that result from your use of the Service.
 		</p>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			If you believe an animal is sick, injured, or at risk, or if there is any sign of a disease that can spread to other animals or to people, seek qualified help immediately. Do not delay professional care because of anything FarmTrack tells you.
+			If you believe an animal is sick, injured, or at risk, or if there is any sign of a disease that can spread to other animals or to people, seek qualified help immediately. Do not delay professional care because of anything FarmPaddy tells you.
 		</p>
 	</section>
 
 	<!-- Section 4 -->
 	<section class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-2">
 		<h2 class="font-bold text-base">4. Fair and proper use</h2>
-		<p class="text-sm text-base-content/80 leading-relaxed">We ask that you use FarmTrack fairly and responsibly. You agree to:</p>
+		<p class="text-sm text-base-content/80 leading-relaxed">We ask that you use FarmPaddy fairly and responsibly. You agree to:</p>
 		<ul class="text-sm text-base-content/80 list-disc pl-5 space-y-1">
 			<li>Use the Service only for lawful purposes and for your own genuine farming and animal-care needs.</li>
 			<li>Provide honest and accurate information when asking for guidance.</li>
 			<li><span class="font-semibold">Not</span> misuse the Service — including attempting to disrupt it, copy or resell it, scrape or extract its content in bulk, reverse-engineer it, or use it to build a competing product.</li>
-			<li><span class="font-semibold">Not</span> rely on FarmTrack for anything it is not designed to do, such as human medical advice, legal advice, or financial advice.</li>
+			<li><span class="font-semibold">Not</span> rely on FarmPaddy for anything it is not designed to do, such as human medical advice, legal advice, or financial advice.</li>
 		</ul>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			The content within FarmTrack is provided for your <span class="font-semibold">personal and farm use</span>. You may not reproduce, republish, or distribute it commercially without our written permission.
+			The content within FarmPaddy is provided for your <span class="font-semibold">personal and farm use</span>. You may not reproduce, republish, or distribute it commercially without our written permission.
 		</p>
 	</section>
 
@@ -104,7 +104,7 @@
 	<section class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-2">
 		<h2 class="font-bold text-base">5. Third-party information (vets, prices, directories)</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			FarmTrack may show information drawn from third-party sources — such as directories of veterinarians and agro-vet shops, price information, and disease data. We share this to be helpful, but:
+			FarmPaddy may show information drawn from third-party sources — such as directories of veterinarians and agro-vet shops, price information, and disease data. We share this to be helpful, but:
 		</p>
 		<ul class="text-sm text-base-content/80 list-disc pl-5 space-y-1">
 			<li>We do <span class="font-semibold">not</span> control or guarantee the accuracy, availability, or quality of third-party information or services.</li>
@@ -118,7 +118,7 @@
 	<section class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-2">
 		<h2 class="font-bold text-base">6. Medications and food safety</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			FarmTrack does not prescribe medication or exact dosages. Any information about drugs, doses, vaccines, or withdrawal periods is general only and must be confirmed with a vet or agro-vet professional. You are responsible for the safe and lawful use of any medication, and for observing withdrawal periods before selling or consuming meat, milk, or eggs from treated animals.
+			FarmPaddy does not prescribe medication or exact dosages. Any information about drugs, doses, vaccines, or withdrawal periods is general only and must be confirmed with a vet or agro-vet professional. You are responsible for the safe and lawful use of any medication, and for observing withdrawal periods before selling or consuming meat, milk, or eggs from treated animals.
 		</p>
 	</section>
 
@@ -126,7 +126,7 @@
 	<section class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-2">
 		<h2 class="font-bold text-base">7. Limitation of liability</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			To the fullest extent allowed by law, FarmTrack, FastForward Livestock Venture Studio, our partners, funders, and our team will <span class="font-semibold">not be liable</span> for any loss or damage — including loss of animals, income, profits, or data, or any indirect or consequential loss — arising from your use of, or inability to use, the Service or its guidance.
+			To the fullest extent allowed by law, FarmPaddy, Fast Forward Livestock Venture Studio, our partners, funders, and our team will <span class="font-semibold">not be liable</span> for any loss or damage — including loss of animals, income, profits, or data, or any indirect or consequential loss — arising from your use of, or inability to use, the Service or its guidance.
 		</p>
 		<p class="text-sm text-base-content/80 leading-relaxed">
 			Where liability cannot be excluded by law, it is limited to the maximum extent permitted.
@@ -145,7 +145,7 @@
 	<section class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-2">
 		<h2 class="font-bold text-base">9. Intellectual property</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			FarmTrack, including its name, content, design, and software, is owned by FastForward Livestock Venture Studio or its licensors and is protected by law. We grant you a personal, limited, non-transferable right to use the Service under these Terms. All other rights are reserved.
+			FarmPaddy, including its name, content, design, and software, is owned by Fast Forward Livestock Venture Studio or its licensors and is protected by law. We grant you a personal, limited, non-transferable right to use the Service under these Terms. All other rights are reserved.
 		</p>
 	</section>
 
@@ -153,7 +153,7 @@
 	<section class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-2">
 		<h2 class="font-bold text-base">10. Changes to the Service and these Terms</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			We may update, change, or discontinue parts of the Service at any time. We may also update these Terms from time to time. When we do, we will update the "Last updated" date above. Your continued use of FarmTrack after changes means you accept the updated Terms.
+			We may update, change, or discontinue parts of the Service at any time. We may also update these Terms from time to time. When we do, we will update the "Last updated" date above. Your continued use of FarmPaddy after changes means you accept the updated Terms.
 		</p>
 	</section>
 
@@ -176,11 +176,11 @@
 	</section>
 
 	<p class="text-[11px] text-center text-base-content/40 pt-2 italic">
-		FarmTrack is a product of FastForward Livestock Venture Studio, supported by a grant from SAIS, implemented by GIZ on behalf of the German Government.
+		FarmPaddy is a product of Fast Forward Livestock Venture Studio, supported by a grant from SAIS, implemented by GIZ on behalf of the German Government.
 	</p>
 
 	<p class="text-[11px] text-center text-base-content/40">
-		<a href="/about" class="hover:text-base-content/70">About FarmTrack</a>
+		<a href="/about" class="hover:text-base-content/70">About FarmPaddy</a>
 		<span class="mx-1">·</span>
 		<a href="/privacy" class="hover:text-base-content/70">Privacy Policy</a>
 	</p>

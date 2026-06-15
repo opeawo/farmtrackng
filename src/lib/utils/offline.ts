@@ -1,6 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 
-interface FarmTrackDB extends DBSchema {
+interface FarmPaddyDB extends DBSchema {
 	'cached-data': {
 		key: string;
 		value: {
@@ -11,12 +11,12 @@ interface FarmTrackDB extends DBSchema {
 	};
 }
 
-let dbInstance: IDBPDatabase<FarmTrackDB> | null = null;
+let dbInstance: IDBPDatabase<FarmPaddyDB> | null = null;
 
-export async function getDB(): Promise<IDBPDatabase<FarmTrackDB>> {
+export async function getDB(): Promise<IDBPDatabase<FarmPaddyDB>> {
 	if (dbInstance) return dbInstance;
 
-	dbInstance = await openDB<FarmTrackDB>('farmtrack-offline', 2, {
+	dbInstance = await openDB<FarmPaddyDB>('farmtrack-offline', 2, {
 		upgrade(db) {
 			if (db.objectStoreNames.contains('pending-records')) {
 				db.deleteObjectStore('pending-records');

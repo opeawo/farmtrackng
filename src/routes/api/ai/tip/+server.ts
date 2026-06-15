@@ -11,7 +11,7 @@ const MODEL = GEMINI_MODEL || 'gemini-flash-latest';
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
-const SYSTEM_INSTRUCTION = `You write the "Tip of the day" shown on the FarmTrack home screen to Nigerian farmers, livestock keepers, and animal health workers.
+const SYSTEM_INSTRUCTION = `You write the "Tip of the day" shown on the FarmPaddy home screen to Nigerian farmers, livestock keepers, and animal health workers.
 
 Write ONE tip per request. Hard rules:
 - One or two sentences. Under 30 words total.

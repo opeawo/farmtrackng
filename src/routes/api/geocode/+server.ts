@@ -21,7 +21,7 @@ interface NominatimResponse {
 	};
 }
 
-const NOMINATIM_UA = 'FarmTrack/1.0 (https://farmtrack.ng; hello@livestockfunds.com)';
+const NOMINATIM_UA = 'FarmPaddy/1.0 (https://farmtrack.ng; hello@livestockfunds.com)';
 
 // Nominatim sometimes returns "Lagos State" — strip the trailing word so the
 // label matches our own data ("Lagos"). FCT becomes "Abuja FCT".

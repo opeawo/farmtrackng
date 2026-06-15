@@ -9,7 +9,7 @@
 		<div class="mx-auto max-w-2xl px-4 py-4 flex items-center justify-between">
 			<a href="/loans" class="flex items-center gap-2 font-bold">
 				<span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary-content/20">₦</span>
-				FarmTrack Loans
+				FarmPaddy Loans
 			</a>
 			{#if data.authed}
 				<a href="/loans/logout" data-sveltekit-reload class="text-sm opacity-80 hover:opacity-100"

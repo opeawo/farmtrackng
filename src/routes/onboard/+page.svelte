@@ -49,11 +49,11 @@
 	}
 </script>
 
-<SEO title="Welcome to FarmTrack" description="Set up your FarmTrack profile." noindex canonicalPath="/onboard" />
+<SEO title="Welcome to FarmPaddy" description="Set up your FarmPaddy profile." noindex canonicalPath="/onboard" />
 
 <div class="min-h-screen bg-primary flex flex-col">
 	<div class="px-6 pt-8 pb-4">
-		<h1 class="text-2xl font-bold text-primary-content">FarmTrack</h1>
+		<h1 class="text-2xl font-bold text-primary-content">FarmPaddy</h1>
 		<p class="text-primary-content/70 text-sm mt-1">Step {step} of {totalSteps}</p>
 		<progress class="progress progress-secondary w-full mt-3" value={step} max={totalSteps}></progress>
 	</div>

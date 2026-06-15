@@ -1,6 +1,6 @@
 {
-	"name": "FarmTrack Nigeria",
-	"short_name": "FarmTrack",
+	"name": "FarmPaddy Nigeria",
+	"short_name": "FarmPaddy",
 	"description": "Livestock management and market intelligence for Nigerian farmers",
 	"start_url": "/",
 	"display": "standalone",

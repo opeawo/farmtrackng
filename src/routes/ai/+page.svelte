@@ -259,7 +259,7 @@
 
 <SEO
 	title="Animal AI — Diagnose, price, advise"
-	description="Ask FarmTrack's Animal AI about livestock health, husbandry, drug guidance, and prices. Add a photo for visual diagnosis. Built for Nigerian poultry, cattle, goats, sheep and pigs."
+	description="Ask FarmPaddy's Animal AI about livestock health, husbandry, drug guidance, and prices. Add a photo for visual diagnosis. Built for Nigerian poultry, cattle, goats, sheep and pigs."
 	canonicalPath="/ai"
 />
 
