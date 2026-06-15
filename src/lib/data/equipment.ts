@@ -24,6 +24,8 @@ export const equipment: Equipment[] = [
 		description:
 			'A complete poultry processing line that takes live birds through scalding, defeathering, evisceration, washing, and chilling — all in one set-up. Built for commercial farms ready to step up from manual processing to a clean, traceable, food-safe operation.',
 		priceNgn: 6_490_000,
+		image: '/images/equipment/poultry-processor.jpg',
+		imageAlt: 'Poultry processing line equipment',
 		features: [
 			'Handles scalding, defeathering, evisceration and chilling',
 			'Stainless steel contact surfaces — food-safe and easy to clean',
