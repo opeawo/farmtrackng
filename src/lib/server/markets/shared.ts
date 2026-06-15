@@ -1,6 +1,6 @@
-// Helpers used by every market source fetcher.
+// Helpers shared by the market aggregation pipeline.
 
-import type { ListingCategory, MarketListing, SourceId } from './types';
+import type { AggregatedPrice, ListingCategory } from './types';
 
 const ALLOWED_CATEGORIES: ListingCategory[] = [
 	'poultry',
@@ -14,24 +14,8 @@ const ALLOWED_CATEGORIES: ListingCategory[] = [
 	'other'
 ];
 
-interface RawListing {
-	title?: unknown;
-	priceNgn?: unknown;
-	unit?: unknown;
-	location?: unknown;
-	postedAt?: unknown;
-	url?: unknown;
-	category?: unknown;
-}
-
-interface NormaliseOpts {
-	source: SourceId;
-	urlHostPattern: RegExp; // listing URL must match this host
-	urlPrefix: string; // prefix for relative URLs
-}
-
-// Grounded responses sometimes wrap JSON in markdown fences, prepend
-// commentary, or append citation footnotes. Extract the first balanced
+// Grounded / generative responses sometimes wrap JSON in markdown fences,
+// prepend commentary, or append footnotes. Extract the first balanced
 // { ... } block.
 export function extractJsonBlock(text: string): string | null {
 	const fenceMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
@@ -51,101 +35,66 @@ export function extractJsonBlock(text: string): string | null {
 	return null;
 }
 
-export function normaliseListing(
-	raw: unknown,
-	opts: NormaliseOpts
-): MarketListing | null {
+interface RawAggregate {
+	product?: unknown;
+	category?: unknown;
+	state?: unknown;
+	unit?: unknown;
+	priceNgn?: unknown;
+	lowNgn?: unknown;
+	highNgn?: unknown;
+	confidence?: unknown;
+	sampleSize?: unknown;
+}
+
+function finiteNumber(v: unknown): number | null {
+	if (typeof v === 'number' && Number.isFinite(v)) return v;
+	if (typeof v === 'string') {
+		const n = Number(v.replace(/[₦,\s]/g, ''));
+		if (Number.isFinite(n)) return n;
+	}
+	return null;
+}
+
+// Validate a single aggregated price emitted by the model. Returns null when
+// the entry is unusable (no product/state, price below the placeholder floor).
+export function normaliseAggregate(raw: unknown): AggregatedPrice | null {
 	if (!raw || typeof raw !== 'object') return null;
-	const r = raw as RawListing;
+	const r = raw as RawAggregate;
 
-	if (typeof r.title !== 'string' || !r.title.trim()) return null;
-	if (typeof r.priceNgn !== 'number' || !Number.isFinite(r.priceNgn) || r.priceNgn < 100) return null;
-	if (typeof r.location !== 'string' || !r.location.trim()) return null;
-	if (typeof r.url !== 'string' || !r.url.trim()) return null;
+	const product = typeof r.product === 'string' ? r.product.trim().slice(0, 120) : '';
+	const state = typeof r.state === 'string' ? r.state.trim().slice(0, 60) : '';
+	if (!product || !state) return null;
 
-	let url = r.url.trim();
-	if (url.startsWith('/')) url = `${opts.urlPrefix}${url}`;
-	if (!url.startsWith('http')) url = `https://${url}`;
-	if (!opts.urlHostPattern.test(url)) return null;
+	const price = finiteNumber(r.priceNgn);
+	if (price === null || price < 100) return null;
 
 	const category =
 		typeof r.category === 'string' && ALLOWED_CATEGORIES.includes(r.category as ListingCategory)
 			? (r.category as ListingCategory)
 			: 'other';
 
-	const unit = typeof r.unit === 'string' && r.unit.trim() ? r.unit.trim().slice(0, 30) : undefined;
+	const unit =
+		typeof r.unit === 'string' && r.unit.trim() ? r.unit.trim().slice(0, 30) : 'per kg';
 
-	const postedAt =
-		(typeof r.postedAt === 'string' && r.postedAt.trim().slice(0, 60)) || 'Recently';
-	const postedAtMs = parsePostedAt(postedAt) ?? undefined;
+	const low = finiteNumber(r.lowNgn);
+	const high = finiteNumber(r.highNgn);
+
+	const confidenceRaw = finiteNumber(r.confidence) ?? 0;
+	const confidence = Math.max(0, Math.min(100, Math.round(confidenceRaw)));
+
+	const sampleRaw = finiteNumber(r.sampleSize) ?? 0;
+	const sampleSize = Math.max(0, Math.round(sampleRaw));
 
 	return {
-		source: opts.source,
-		title: r.title.trim().slice(0, 200),
-		priceNgn: Math.round(r.priceNgn),
+		product,
+		category,
+		state,
 		unit,
-		location: r.location.trim().slice(0, 100),
-		postedAt,
-		postedAtMs,
-		url,
-		category
+		priceNgn: Math.round(price),
+		lowNgn: low !== null && low >= 100 ? Math.round(low) : undefined,
+		highNgn: high !== null && high >= 100 ? Math.round(high) : undefined,
+		confidence,
+		sampleSize
 	};
-}
-
-// Parse the wide variety of postedAt strings sources return ("Today",
-// "Yesterday", "3 days ago", "2026-05-29", "May 29, 2026", "29 May") into an
-// epoch-ms timestamp so the merged feed can be sorted strictly newest-first.
-// Returns null when nothing reliable can be extracted.
-export function parsePostedAt(raw: string, now: number = Date.now()): number | null {
-	const trimmed = raw.trim();
-	if (!trimmed) return null;
-
-	const lower = trimmed.toLowerCase();
-
-	if (lower === 'today' || lower === 'just now') return now;
-	if (lower === 'yesterday') return now - 24 * 60 * 60 * 1000;
-
-	// "X minute(s)/hour(s)/day(s)/week(s)/month(s)/year(s) ago"
-	const relMatch = lower.match(
-		/^(\d+)\s+(minute|hour|day|week|month|year)s?\s+ago$/
-	);
-	if (relMatch) {
-		const n = parseInt(relMatch[1], 10);
-		const unit = relMatch[2];
-		const ms =
-			unit === 'minute' ? 60_000
-				: unit === 'hour' ? 60 * 60_000
-				: unit === 'day' ? 24 * 60 * 60_000
-				: unit === 'week' ? 7 * 24 * 60 * 60_000
-				: unit === 'month' ? 30 * 24 * 60 * 60_000
-				: 365 * 24 * 60 * 60_000;
-		return now - n * ms;
-	}
-
-	// "an hour ago", "a day ago"
-	const anMatch = lower.match(/^an?\s+(minute|hour|day|week|month|year)\s+ago$/);
-	if (anMatch) {
-		const unit = anMatch[1];
-		const ms =
-			unit === 'minute' ? 60_000
-				: unit === 'hour' ? 60 * 60_000
-				: unit === 'day' ? 24 * 60 * 60_000
-				: unit === 'week' ? 7 * 24 * 60 * 60_000
-				: unit === 'month' ? 30 * 24 * 60 * 60_000
-				: 365 * 24 * 60 * 60_000;
-		return now - ms;
-	}
-
-	// Try Date.parse on the original — handles "2026-05-29", "2026-05-29T...",
-	// "May 29 2026", "29 May 2026", "May 29", etc.
-	const parsed = Date.parse(trimmed);
-	if (!Number.isNaN(parsed)) {
-		// Sanity: don't accept dates more than 2 days in the future (clock skew
-		// or AI hallucination) or more than 5 years in the past.
-		const fiveYearsAgo = now - 5 * 365 * 24 * 60 * 60_000;
-		const twoDaysAhead = now + 2 * 24 * 60 * 60_000;
-		if (parsed >= fiveYearsAgo && parsed <= twoDaysAhead) return parsed;
-	}
-
-	return null;
 }

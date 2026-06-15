@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { env } from '$env/dynamic/public';
 	import { user, requestLocation } from '$lib/stores/user';
 	import SEO from '$lib/components/ui/SEO.svelte';
+
+	// In-progress features (Market Prices, Disease Alerts) are hidden unless explicitly enabled.
+	const showPreviewFeatures = env.PUBLIC_SHOW_PREVIEW_FEATURES === 'true';
 	import {
 		Sparkles, TrendingUp, AlertTriangle, ShoppingBag,
 		ChevronRight, Leaf, Sun, Moon, Sunset, MapPin, ArrowRight, Loader2,
@@ -186,6 +190,7 @@
 		</a>
 	</div>
 
+	{#if showPreviewFeatures}
 	<!-- Section Label -->
 	<div class="flex items-center justify-between">
 		<h2 class="text-sm font-bold text-base-content/80">Quick Access</h2>
@@ -215,6 +220,7 @@
 			<ChevronRight size={18} class="text-base-content/20 group-hover:text-base-content/40 transition-colors shrink-0" />
 		</a>
 	</div>
+	{/if}
 
 	<!-- Tip Card -->
 	<div class="bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 rounded-2xl p-4">

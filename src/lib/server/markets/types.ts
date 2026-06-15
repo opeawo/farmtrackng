@@ -1,12 +1,6 @@
-// Shared shape used by every market price source. New sources add to the
-// SourceId union; the rest of the system treats listings uniformly.
-
-export type SourceId = 'jiji' | 'poultry-plaza';
-
-export const SOURCE_META: Record<SourceId, { label: string; baseUrl: string }> = {
-	jiji: { label: 'Jiji', baseUrl: 'https://jiji.ng/livestock-and-poultry' },
-	'poultry-plaza': { label: 'Poultry Plaza', baseUrl: 'https://www.facebook.com/poultryplaza' }
-};
+// Shared shapes for the market price index. Prices are sourced entirely from
+// the FarmPaddy field-agent intake (a Google Sheet) and aggregated into a
+// per-state, per-livestock index before they ever reach the client.
 
 export type ListingCategory =
 	| 'poultry'
@@ -19,18 +13,6 @@ export type ListingCategory =
 	| 'eggs'
 	| 'other';
 
-export interface MarketListing {
-	source: SourceId;
-	title: string;
-	priceNgn: number;
-	unit?: string; // 'each', 'per kg', 'per crate', 'per bag', etc.
-	location: string;
-	postedAt: string; // free-form, exactly as the source shows it
-	postedAtMs?: number; // epoch ms parsed from postedAt; null when unparseable
-	url: string;
-	category: ListingCategory;
-}
-
 export const LISTING_CATEGORIES: ListingCategory[] = [
 	'poultry',
 	'cattle',
@@ -42,3 +24,17 @@ export const LISTING_CATEGORIES: ListingCategory[] = [
 	'eggs',
 	'other'
 ];
+
+// A single modeled price point — the only shape that leaves the server. No
+// source identity: the figure is FarmPaddy's aggregated estimate.
+export interface AggregatedPrice {
+	product: string; // canonical livestock/product name, e.g. "Broiler (live)"
+	category: ListingCategory;
+	state: string; // Nigerian state
+	unit: string; // e.g. "per kg"
+	priceNgn: number; // modeled representative price
+	lowNgn?: number;
+	highNgn?: number;
+	confidence: number; // 0–100 accuracy %
+	sampleSize: number; // agent entries informing this point
+}
