@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { equipment, formatNgn, downPayment } from '$lib/data/equipment';
-	import { ShoppingBag, ChevronRight, Wallet } from 'lucide-svelte';
+	import { ShoppingBag, ChevronRight, Wallet, Package } from 'lucide-svelte';
 	import SEO from '$lib/components/ui/SEO.svelte';
 </script>
 
@@ -22,7 +22,7 @@
 	<p class="text-white/70 text-sm mt-1">30% down. Spread the rest in installments.</p>
 </div>
 
-<div class="px-4 pt-4 space-y-4 pb-24">
+<div class="px-4 pt-4 space-y-3 pb-24">
 	<!-- Financing banner -->
 	<div class="bg-accent/10 border border-accent/20 rounded-2xl p-3 flex items-start gap-3">
 		<Wallet size={18} class="text-accent shrink-0 mt-0.5" />
@@ -35,33 +35,35 @@
 	{#each equipment as item}
 		<a
 			href="/marketplace/{item.id}"
-			class="group block bg-white rounded-2xl overflow-hidden shadow-sm border border-base-300/50 active:scale-[0.99] transition-transform"
+			class="group flex gap-3 p-3 bg-white rounded-2xl shadow-sm border border-base-300/50 active:scale-[0.99] transition-transform"
 		>
-			<div class="aspect-[16/9] bg-base-200 overflow-hidden">
-				<img
-					src={item.image}
-					alt={item.imageAlt}
-					loading="lazy"
-					class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-				/>
+			<div class="w-20 h-20 shrink-0 rounded-xl bg-base-200 overflow-hidden">
+				{#if item.image}
+					<img
+						src={item.image}
+						alt={item.imageAlt}
+						loading="lazy"
+						class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+					/>
+				{:else}
+					<div class="w-full h-full bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#40916c] flex items-center justify-center">
+						<Package size={28} class="text-white/70" />
+					</div>
+				{/if}
 			</div>
-			<div class="p-4 space-y-2">
-				<div class="flex items-start justify-between gap-3">
-					<div class="flex-1 min-w-0">
+			<div class="flex-1 min-w-0 flex flex-col justify-between">
+				<div class="flex items-start justify-between gap-2">
+					<div class="min-w-0">
 						<h3 class="font-semibold text-[15px] leading-tight">{item.name}</h3>
-						<p class="text-xs text-base-content/50 mt-0.5">{item.tagline}</p>
+						<p class="text-xs text-base-content/50 mt-0.5 line-clamp-1">{item.tagline}</p>
 					</div>
-					<ChevronRight size={18} class="text-base-content/30 shrink-0 mt-1" />
+					<ChevronRight size={18} class="text-base-content/30 shrink-0 mt-0.5" />
 				</div>
-				<div class="flex items-center justify-between pt-2 border-t border-base-300/50">
-					<div>
-						<p class="text-[11px] text-base-content/50 uppercase tracking-wide">Price</p>
-						<p class="font-bold text-primary">{formatNgn(item.priceNgn)}</p>
-					</div>
-					<div class="text-right">
-						<p class="text-[11px] text-base-content/50 uppercase tracking-wide">30% down</p>
-						<p class="font-semibold text-sm">{formatNgn(downPayment(item.priceNgn))}</p>
-					</div>
+				<div class="flex items-baseline gap-2 mt-2">
+					<p class="font-bold text-primary">{formatNgn(item.priceNgn)}</p>
+					<p class="text-[11px] text-base-content/50">
+						{formatNgn(downPayment(item.priceNgn))} down
+					</p>
 				</div>
 			</div>
 		</a>

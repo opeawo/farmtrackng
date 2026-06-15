@@ -5,7 +5,7 @@
 		balanceAmount,
 		whatsappBuyUrl
 	} from '$lib/data/equipment';
-	import { ArrowLeft, Check, Wallet, MessageCircle } from 'lucide-svelte';
+	import { ArrowLeft, Check, Wallet, MessageCircle, Package } from 'lucide-svelte';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import { SITE, absoluteUrl } from '$lib/seo';
 	import type { PageData } from './$types';
@@ -20,7 +20,7 @@
 			'@type': 'Product',
 			name: item.name,
 			description: item.tagline,
-			image: absoluteUrl(item.image),
+			...(item.image ? { image: absoluteUrl(item.image) } : {}),
 			brand: { '@type': 'Brand', name: SITE.name },
 			offers: {
 				'@type': 'Offer',
@@ -49,7 +49,13 @@
 <!-- Hero image -->
 <div class="relative">
 	<div class="aspect-[3/2] max-h-[42vh] bg-base-200 overflow-hidden">
-		<img src={item.image} alt={item.imageAlt} class="w-full h-full object-cover" />
+		{#if item.image}
+			<img src={item.image} alt={item.imageAlt} class="w-full h-full object-cover" />
+		{:else}
+			<div class="w-full h-full bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#40916c] flex items-center justify-center">
+				<Package size={64} class="text-white/70" />
+			</div>
+		{/if}
 	</div>
 	<a
 		href="/marketplace"
