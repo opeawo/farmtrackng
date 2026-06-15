@@ -16,6 +16,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json({ error: 'Invalid sync payload' }, { status: 400 });
 	}
 
+	if (!supabase) {
+		return json({ error: 'Database not configured' }, { status: 503 });
+	}
+
 	const results: { id: string; success: boolean; error?: string }[] = [];
 
 	for (const action of actions) {
