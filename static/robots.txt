@@ -9,4 +9,4 @@ Disallow: /api/
 Disallow: /markets/submit
 Disallow: /alerts/report
 
-Sitemap: https://farmtrack.ng/sitemap.xml
+Sitemap: https://farmpaddy.com/sitemap.xml

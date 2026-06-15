@@ -5,7 +5,7 @@ export const SITE = {
 	tagline: 'Animal AI, market prices, and equipment for Nigerian farmers',
 	description:
 		'FarmPaddy is a mobile-first companion for Nigerian farmers and animal health workers. Ask the AI about livestock health, check live market prices for poultry and cattle, and shop processing equipment with 30% down.',
-	url: 'https://farmtrack.ng',
+	url: 'https://farmpaddy.com',
 	locale: 'en_NG',
 	// 1200x630 social-share image lives at this path; until a proper one is
 	// created, the 512px maskable icon is referenced as a best-available fallback.

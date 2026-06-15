@@ -7,7 +7,7 @@
 
 <SEO
 	title="Privacy Policy"
-	description="How FarmPaddy collects, uses, and protects your information. Most of your data lives only in your browser; AI queries and geocoding are processed by Google."
+	description="How FarmPaddy collects, uses, and protects your information. Most of your data lives only in your browser; AI queries are processed by Google and location lookups by OpenStreetMap."
 	canonicalPath="/privacy"
 />
 
@@ -106,7 +106,7 @@
 		</p>
 		<ul class="text-sm text-base-content/80 list-disc pl-5 space-y-1">
 			<li><span class="font-semibold">Google (Gemini AI)</span> — receives the text of your question, plus any photo or voice recording you attach, so the AI can answer. Per Google's policies, this data is used to provide the response. Google's policies for the Gemini API apply.</li>
-			<li><span class="font-semibold">Mapbox</span> — receives your latitude and longitude when you use "Set your location" so we can look up the matching state and LGA.</li>
+			<li><span class="font-semibold">OpenStreetMap (Nominatim)</span> — receives your latitude and longitude when you use "Set your location" so we can look up the matching state and LGA.</li>
 			<li><span class="font-semibold">Vercel</span> — hosts the FarmPaddy service and processes every request on the way through. Standard server logs (IP, user-agent, request URL) are kept by Vercel.</li>
 			<li><span class="font-semibold">Google (Sheets API)</span> — used only by the loan-status portal to read loan records the team maintains in a Google Sheet. Your loan-portal sign-in details are matched against those records.</li>
 		</ul>
@@ -119,7 +119,7 @@
 	<section class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-2">
 		<h2 class="font-bold text-base">5. Where your data is stored and processed</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			FarmPaddy runs on infrastructure outside Nigeria. AI requests are processed by Google Gemini, geocoding is processed by Mapbox, and the app itself is hosted on Vercel — all of which may process data in Europe or the United States. By using FarmPaddy, you understand that your information may be transferred to and processed in these countries, which may have different data-protection laws than Nigeria.
+			FarmPaddy runs on infrastructure outside Nigeria. AI requests are processed by Google Gemini, geocoding is processed by OpenStreetMap (Nominatim), and the app itself is hosted on Vercel — all of which may process data in Europe or the United States. By using FarmPaddy, you understand that your information may be transferred to and processed in these countries, which may have different data-protection laws than Nigeria.
 		</p>
 	</section>
 
@@ -128,7 +128,7 @@
 		<h2 class="font-bold text-base">6. How long we keep your information</h2>
 		<ul class="text-sm text-base-content/80 list-disc pl-5 space-y-1">
 			<li>Data in your browser (question history, location, cached tips) stays until you clear it or until you clear your browser storage.</li>
-			<li>Server-side logs (Vercel access logs, Google/Mapbox provider logs) are kept according to the providers' standard retention windows — usually 30 to 90 days.</li>
+			<li>Server-side logs (Vercel access logs, Google/OpenStreetMap provider logs) are kept according to the providers' standard retention windows — usually 30 to 90 days.</li>
 			<li>Loan records in our Google Sheet are kept by Fast Forward Livestock Venture Studio for as long as needed to administer the loan.</li>
 		</ul>
 	</section>
@@ -150,7 +150,7 @@
 	<section class="bg-white rounded-2xl p-5 shadow-sm border border-base-300/50 space-y-2">
 		<h2 class="font-bold text-base">8. How we protect your information</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			FarmPaddy uses HTTPS for all traffic between your device and our servers. Loan portal credentials are matched without storing your phone number in a long-lived cookie. We use industry-standard providers (Vercel, Google, Mapbox) that maintain their own security practices.
+			FarmPaddy uses HTTPS for all traffic between your device and our servers. Loan portal credentials are matched without storing your phone number in a long-lived cookie. We use industry-standard providers (Vercel, Google, OpenStreetMap) that maintain their own security practices.
 		</p>
 		<p class="text-sm text-base-content/80 leading-relaxed">
 			No service can promise perfect security. If you become aware of a security issue with FarmPaddy, please tell us at <a href="mailto:hello@livestockfunds.com" class="text-primary hover:underline">hello@livestockfunds.com</a>.

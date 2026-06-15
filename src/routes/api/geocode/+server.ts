@@ -21,7 +21,7 @@ interface NominatimResponse {
 	};
 }
 
-const NOMINATIM_UA = 'FarmPaddy/1.0 (https://farmtrack.ng; hello@livestockfunds.com)';
+const NOMINATIM_UA = 'FarmPaddy/1.0 (https://farmpaddy.com; hello@livestockfunds.com)';
 
 // Nominatim sometimes returns "Lagos State" — strip the trailing word so the
 // label matches our own data ("Lagos"). FCT becomes "Abuja FCT".
@@ -68,7 +68,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	try {
 		const res = await fetch(url, {
-			headers: { 'User-Agent': NOMINATIM_UA, Referer: 'https://farmtrack.ng' }
+			headers: { 'User-Agent': NOMINATIM_UA, Referer: 'https://farmpaddy.com' }
 		});
 		if (!res.ok) {
 			console.error('[api/geocode] Nominatim returned', res.status);
