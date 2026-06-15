@@ -3,13 +3,7 @@
 // Sheet ID set via env (LOAN_SHEET_ID).
 
 import { google } from 'googleapis';
-import {
-	GOOGLE_SA_EMAIL,
-	GOOGLE_SA_KEY,
-	LOAN_SHEET_ID,
-	LOAN_SHEET_LOANS_RANGE,
-	LOAN_SHEET_INSTALLMENTS_RANGE
-} from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import type { Installment, Loan, SheetSnapshot } from './types';
 import {
 	normalisePhone,
@@ -17,6 +11,14 @@ import {
 	parseDate,
 	parseMoney
 } from './normalise';
+
+const {
+	GOOGLE_SA_EMAIL,
+	GOOGLE_SA_KEY,
+	LOAN_SHEET_ID,
+	LOAN_SHEET_LOANS_RANGE,
+	LOAN_SHEET_INSTALLMENTS_RANGE
+} = env;
 
 const LOANS_RANGE = LOAN_SHEET_LOANS_RANGE || 'Loans!A1:Z1000';
 const INSTALLMENTS_RANGE = LOAN_SHEET_INSTALLMENTS_RANGE || 'Installments!A1:Z5000';

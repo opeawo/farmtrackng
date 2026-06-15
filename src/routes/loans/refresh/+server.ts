@@ -3,8 +3,10 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { SYNC_ENDPOINT_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { getSnapshot, getCachedSnapshotInfo } from '$lib/server/loans/cache';
+
+const { SYNC_ENDPOINT_KEY } = env;
 
 export const GET: RequestHandler = async ({ url }) => {
 	const key = url.searchParams.get('key');

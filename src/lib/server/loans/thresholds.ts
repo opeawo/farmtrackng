@@ -1,5 +1,7 @@
-import { ALERT_LATE_DAYS, ALERT_AT_RISK_DAYS } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import type { StatusThresholds } from './status';
+
+const { ALERT_LATE_DAYS, ALERT_AT_RISK_DAYS } = env;
 
 export function getThresholds(): StatusThresholds {
 	const lateDays = Number(ALERT_LATE_DAYS) || 1;

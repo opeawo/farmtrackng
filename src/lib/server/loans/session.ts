@@ -3,7 +3,9 @@
 // that loan_id only. No DB, no Supabase auth.
 
 import crypto from 'node:crypto';
-import { LOAN_SESSION_SECRET } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+
+const { LOAN_SESSION_SECRET } = env;
 
 const COOKIE_NAME = 'loan_sess';
 const MAX_AGE_SECONDS = 60 * 60 * 12; // 12 hours

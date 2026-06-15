@@ -1,7 +1,9 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { WHATSAPP_VERIFY_TOKEN } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { handleIncomingMessage } from '$lib/utils/whatsapp-bot';
+
+const { WHATSAPP_VERIFY_TOKEN } = env;
 
 export const GET: RequestHandler = async ({ url }) => {
 	const mode = url.searchParams.get('hub.mode');
