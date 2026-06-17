@@ -3,19 +3,15 @@
 	import { env } from '$env/dynamic/public';
 	import { LayoutDashboard, Sparkles, ShoppingBag, TrendingUp, AlertTriangle } from 'lucide-svelte';
 
-	// In-progress features (Markets, Alerts) are hidden unless explicitly enabled.
+	// In-progress features (Alerts) are hidden unless explicitly enabled.
 	const showPreviewFeatures = env.PUBLIC_SHOW_PREVIEW_FEATURES === 'true';
 
 	const navItems = [
 		{ href: '/', label: 'Home', icon: LayoutDashboard },
 		{ href: '/ai', label: 'AI', icon: Sparkles },
 		{ href: '/marketplace', label: 'Shop', icon: ShoppingBag },
-		...(showPreviewFeatures
-			? [
-					{ href: '/markets', label: 'Markets', icon: TrendingUp },
-					{ href: '/alerts', label: 'Alerts', icon: AlertTriangle }
-				]
-			: [])
+		{ href: '/markets', label: 'Markets', icon: TrendingUp },
+		...(showPreviewFeatures ? [{ href: '/alerts', label: 'Alerts', icon: AlertTriangle }] : [])
 	];
 
 	function isActive(href: string): boolean {
