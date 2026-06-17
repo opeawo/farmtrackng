@@ -193,7 +193,6 @@
 		</a>
 	</div>
 
-	{#if showPreviewFeatures}
 	<!-- Section Label -->
 	<div class="flex items-center justify-between">
 		<h2 class="text-sm font-bold text-base-content/80">Quick Access</h2>
@@ -212,6 +211,7 @@
 			<ChevronRight size={18} class="text-base-content/20 group-hover:text-base-content/40 transition-colors shrink-0" />
 		</a>
 
+		{#if showPreviewFeatures}
 		<a href="/alerts" class="group flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm border border-base-300/50 active:scale-[0.98] transition-transform">
 			<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-error/15 to-error/5 flex items-center justify-center shrink-0">
 				<AlertTriangle size={22} class="text-error" />
@@ -222,8 +222,8 @@
 			</div>
 			<ChevronRight size={18} class="text-base-content/20 group-hover:text-base-content/40 transition-colors shrink-0" />
 		</a>
+		{/if}
 	</div>
-	{/if}
 
 	<!-- Tip Card -->
 	<div class="bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 rounded-2xl p-4">
