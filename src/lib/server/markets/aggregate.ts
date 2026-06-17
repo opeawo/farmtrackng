@@ -1,53 +1,79 @@
 // Aggregate raw field-agent price entries into FarmPaddy's modeled price index.
 //
-// The agent intake (Google Sheet) is the only source. We feed the raw entries
-// to Gemini, which groups them by livestock type + state, drops outliers,
-// down-weights stale entries, fills thin states with reasonable estimates, and
-// returns a representative price per kg with a confidence score. The output
-// carries no source identity — it is presented as FarmPaddy's own index.
+// The agent intake (Google Sheet) is the only source. We group the raw entries
+// by livestock type + state and compute a robust representative price per kg
+// (outlier-trimmed median), a plausible low–high range, and a confidence score
+// from sample size and price spread. Done deterministically in code so it is
+// instant and scales to thousands of rows. The output carries no source
+// identity — it is presented as FarmPaddy's own index.
 
-import { GoogleGenAI } from '@google/genai';
-import { env } from '$env/dynamic/private';
 import { getPriceRows, type PriceRow } from './sheets';
-import { extractJsonBlock, normaliseAggregate } from './shared';
-import type { AggregatedPrice } from './types';
-
-const MODEL = env.GEMINI_MODEL || 'gemini-flash-latest';
-
-function buildPrompt(rows: PriceRow[]): string {
-	const data = rows.map((r) => ({
-		product: r.product,
-		state: r.state,
-		market: r.market,
-		priceNgnPerKg: r.priceNgn,
-		date: r.timestampWat
-	}));
-
-	return `You are FarmPaddy's livestock pricing engine. Below are raw price entries (Naira per kg) collected by FarmPaddy field agents across Nigeria.
-
-DATA:
-${JSON.stringify(data)}
-
-Produce a clean aggregated price index. Rules:
-- Group entries by the SAME livestock/product type and the SAME state.
-- For each group, compute a representative priceNgn (per kg): use a robust central value (median-like), discarding obvious outliers and giving more weight to more recent entries.
-- Also give lowNgn and highNgn for the plausible current range in that state.
-- Normalise product names into clean canonical labels (e.g. "broiler" / "Broilers live" -> "Broiler (live)").
-- Assign a category for each: one of poultry, cattle, goat, sheep, pig, fish, feed, eggs, other.
-- confidence is 0–100: high when many recent, tightly-agreeing entries exist; lower when few entries, wide spread, or stale; lower still when you estimate a thin state by reasonable assumption.
-- sampleSize is the number of raw entries that informed the figure.
-- unit is "per kg".
-- Where a state has very little data, you MAY infer a reasonable estimate from comparable states, but mark it with low confidence.
-
-Return ONLY a single JSON object, no commentary, no markdown fences:
-{ "prices": [ { "product": "...", "category": "...", "state": "...", "unit": "per kg", "priceNgn": 0, "lowNgn": 0, "highNgn": 0, "confidence": 0, "sampleSize": 0 } ] }
-
-If there is no usable data, return { "prices": [] }.`;
-}
+import type { AggregatedPrice, ListingCategory } from './types';
 
 export interface AggregateResult {
 	prices: AggregatedPrice[];
 	degraded: boolean;
+}
+
+// Map a raw livestock/product name to a display category (for the icons/filter).
+function categoryFor(product: string): ListingCategory {
+	const p = product.toLowerCase();
+	if (/cattle|cow|beef|bull|zebu|bunaji/.test(p)) return 'cattle';
+	if (/goat|chevon/.test(p)) return 'goat';
+	if (/sheep|ram|mutton|lamb|ewe/.test(p)) return 'sheep';
+	if (/pig|pork|hog|swine|boar/.test(p)) return 'pig';
+	if (/poultry|chicken|broiler|layer|cockerel|fowl|turkey|duck|bird/.test(p)) return 'poultry';
+	if (/fish|catfish|tilapia/.test(p)) return 'fish';
+	if (/egg/.test(p)) return 'eggs';
+	if (/feed|grain|fodder|maize|mash|meal/.test(p)) return 'feed';
+	return 'other';
+}
+
+function median(sorted: number[]): number {
+	const n = sorted.length;
+	if (n === 0) return 0;
+	const mid = Math.floor(n / 2);
+	return n % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+function quantile(sorted: number[], q: number): number {
+	if (sorted.length === 0) return 0;
+	const pos = (sorted.length - 1) * q;
+	const base = Math.floor(pos);
+	const rest = pos - base;
+	return sorted[base + 1] !== undefined
+		? sorted[base] + rest * (sorted[base + 1] - sorted[base])
+		: sorted[base];
+}
+
+// Drop IQR outliers when there are enough points to make that meaningful.
+function trimOutliers(sorted: number[]): number[] {
+	if (sorted.length < 4) return sorted;
+	const q1 = quantile(sorted, 0.25);
+	const q3 = quantile(sorted, 0.75);
+	const iqr = q3 - q1;
+	const lo = q1 - 1.5 * iqr;
+	const hi = q3 + 1.5 * iqr;
+	const kept = sorted.filter((v) => v >= lo && v <= hi);
+	return kept.length ? kept : sorted;
+}
+
+// Confidence 0–100 from sample size and relative spread (coefficient of variation).
+function confidenceFor(values: number[], mean: number): number {
+	const n = values.length;
+	let base: number;
+	if (n >= 8) base = 90;
+	else if (n >= 5) base = 84;
+	else if (n >= 3) base = 74;
+	else if (n === 2) base = 62;
+	else base = 45;
+
+	if (n >= 2 && mean > 0) {
+		const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / n;
+		const cv = Math.sqrt(variance) / mean; // 0 = identical, higher = noisier
+		base -= Math.min(20, Math.round(cv * 60));
+	}
+	return Math.max(30, Math.min(95, Math.round(base)));
 }
 
 export async function fetchAggregatedPrices(): Promise<AggregateResult> {
@@ -56,33 +82,49 @@ export async function fetchAggregatedPrices(): Promise<AggregateResult> {
 		return { prices: [], degraded: true };
 	}
 
-	const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
-	const response = await ai.models.generateContent({
-		model: MODEL,
-		contents: [{ role: 'user', parts: [{ text: buildPrompt(rows) }] }],
-		config: { temperature: 0, maxOutputTokens: 8192 }
-	});
-
-	const text = (response.text ?? '').trim();
-	const jsonText = extractJsonBlock(text);
-	if (!jsonText) throw new Error('Aggregator returned no parseable JSON');
-
-	let parsed: { prices?: unknown[] };
-	try {
-		parsed = JSON.parse(jsonText) as { prices?: unknown[] };
-	} catch {
-		throw new Error('Aggregator returned malformed JSON');
+	// Group by product (case-normalised) + state, keeping a display label.
+	interface Group {
+		product: string;
+		state: string;
+		prices: number[];
+	}
+	const groups = new Map<string, Group>();
+	for (const r of rows) {
+		const product = r.product.trim();
+		const state = r.state.trim();
+		if (!product || !state || !(r.priceNgn >= 100)) continue;
+		const key = `${product.toLowerCase()}|${state.toLowerCase()}`;
+		let g = groups.get(key);
+		if (!g) {
+			g = { product, state, prices: [] };
+			groups.set(key, g);
+		}
+		g.prices.push(r.priceNgn);
 	}
 
-	const prices = (parsed.prices ?? [])
-		.map((raw) => normaliseAggregate(raw))
-		.filter((p): p is AggregatedPrice => p !== null);
+	const prices: AggregatedPrice[] = [];
+	for (const g of groups.values()) {
+		const sorted = [...g.prices].sort((a, b) => a - b);
+		const kept = trimOutliers(sorted);
+		const mean = kept.reduce((s, v) => s + v, 0) / kept.length;
+		prices.push({
+			product: g.product,
+			category: categoryFor(g.product),
+			state: g.state,
+			unit: 'per kg',
+			priceNgn: Math.round(median(kept)),
+			lowNgn: Math.round(kept[0]),
+			highNgn: Math.round(kept[kept.length - 1]),
+			confidence: confidenceFor(kept, mean),
+			sampleSize: g.prices.length
+		});
+	}
 
 	// Sort by state then product so the board groups cleanly.
 	prices.sort((a, b) => a.state.localeCompare(b.state) || a.product.localeCompare(b.product));
 
-	// Flag a thin dataset (few raw entries) so the UI can caveat it.
-	const degraded = rows.length < 5 || prices.length === 0;
+	// Flag a thin dataset (very few raw entries) so the UI can caveat it.
+	const degraded = rows.length < 5;
 
 	return { prices, degraded };
 }
