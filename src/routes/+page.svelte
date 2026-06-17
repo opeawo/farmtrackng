@@ -67,7 +67,9 @@
 
 	function todayKey(): string {
 		const d = new Date();
-		return `farmtrack:tip:${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+		// Bumped to v2 to invalidate truncated tips cached when the previous
+		// maxOutputTokens (80) was too small for the model.
+		return `farmtrack:tip:v2:${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 	}
 
 	function dayOfYearNum(): number {
@@ -80,7 +82,8 @@
 		const key = todayKey();
 		try {
 			const cached = localStorage.getItem(key);
-			if (cached) {
+			// Guard against a truncated/broken cached tip — re-fetch if too short.
+			if (cached && cached.length >= 15) {
 				tipOfDay = cached;
 				return;
 			}
@@ -100,7 +103,7 @@
 			});
 			if (!res.ok) return;
 			const data = (await res.json()) as { tip?: string };
-			if (typeof data.tip === 'string' && data.tip.length > 0) {
+			if (typeof data.tip === 'string' && data.tip.length >= 15) {
 				tipOfDay = data.tip;
 				try {
 					localStorage.setItem(key, data.tip);

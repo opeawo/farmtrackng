@@ -48,12 +48,17 @@ export const POST: RequestHandler = async ({ request }) => {
 			config: {
 				systemInstruction: SYSTEM_INSTRUCTION,
 				temperature: 0.9,
-				maxOutputTokens: 80
+				maxOutputTokens: 256,
+				// Gemini 2.5 Flash defaults to thinking mode on; thinking tokens
+				// count against maxOutputTokens. Disable for this short task so the
+				// whole budget goes to the actual tip.
+				thinkingConfig: { thinkingBudget: 0 }
 			}
 		});
 
 		const tip = (response.text ?? '').trim().replace(/^["']|["']$/g, '');
-		if (!tip) {
+		if (tip.length < 15) {
+			console.warn('[api/ai/tip] tip too short, refusing to return:', JSON.stringify(tip));
 			return json({ error: 'No tip generated.' }, { status: 502 });
 		}
 		return json({ tip });
