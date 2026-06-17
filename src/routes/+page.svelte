@@ -1,13 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { env } from '$env/dynamic/public';
 	import { user, requestLocation } from '$lib/stores/user';
 	import SEO from '$lib/components/ui/SEO.svelte';
-
-	// In-progress features (Market Prices, Disease Alerts) are hidden unless explicitly enabled.
-	const showPreviewFeatures = env.PUBLIC_SHOW_PREVIEW_FEATURES === 'true';
 	import {
-		Sparkles, TrendingUp, AlertTriangle, ShoppingBag,
+		Sparkles, TrendingUp, ShoppingBag,
 		ChevronRight, Leaf, Sun, Moon, Sunset, MapPin, ArrowRight, Loader2,
 		MoreVertical, Info, FileText, ShieldCheck, X
 	} from 'lucide-svelte';
@@ -175,54 +171,49 @@
 </div>
 
 <div class="px-4 -mt-4 space-y-5 pb-4">
-	<!-- Quick Actions -->
-	<div class="grid grid-cols-2 gap-3">
-		<a href="/ai" class="bg-gradient-to-br from-primary to-[#40916c] text-white rounded-2xl p-4 flex flex-col items-center gap-2 shadow-lg shadow-primary/20 active:scale-[0.97] transition-transform">
-			<div class="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center">
-				<Sparkles size={22} />
+	<!-- Animal AI — primary feature -->
+	<a
+		href="/ai"
+		class="block bg-gradient-to-br from-primary to-[#40916c] text-white rounded-2xl p-5 shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform"
+	>
+		<div class="flex items-center gap-4">
+			<div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+				<Sparkles size={28} />
 			</div>
-			<span class="text-sm font-semibold">Ask Animal AI</span>
-			<span class="text-[11px] text-white/70">Diagnose, price, advice</span>
-		</a>
-		<a href="/marketplace" class="bg-gradient-to-br from-[#b7e4c7] to-[#95d5b2] text-[#1b4332] rounded-2xl p-4 flex flex-col items-center gap-2 shadow-lg shadow-secondary/20 active:scale-[0.97] transition-transform">
+			<div class="flex-1 min-w-0">
+				<h2 class="text-lg font-bold leading-tight">Ask Animal AI</h2>
+				<p class="text-[13px] text-white/80 mt-0.5">Diagnose, get treatment and prices in seconds</p>
+			</div>
+			<ArrowRight size={20} class="text-white/70 shrink-0" />
+		</div>
+	</a>
+
+	<!-- Shop + Market -->
+	<div class="grid grid-cols-2 gap-3">
+		<a
+			href="/marketplace"
+			class="bg-gradient-to-br from-[#b7e4c7] to-[#95d5b2] text-[#1b4332] rounded-2xl p-4 flex flex-col gap-3 shadow-lg shadow-secondary/20 active:scale-[0.97] transition-transform"
+		>
 			<div class="w-11 h-11 rounded-full bg-[#1b4332]/10 flex items-center justify-center">
 				<ShoppingBag size={22} />
 			</div>
-			<span class="text-sm font-semibold">Shop Equipment</span>
-			<span class="text-[11px] text-[#1b4332]/60">30% down, rest in installments</span>
+			<div>
+				<span class="text-sm font-semibold block">Shop Equipment</span>
+				<span class="text-[11px] text-[#1b4332]/60">30% down, pay the rest in bits</span>
+			</div>
 		</a>
-	</div>
-
-	<!-- Section Label -->
-	<div class="flex items-center justify-between">
-		<h2 class="text-sm font-bold text-base-content/80">Quick Access</h2>
-	</div>
-
-	<!-- Feature Cards -->
-	<div class="space-y-3">
-		<a href="/markets" class="group flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm border border-base-300/50 active:scale-[0.98] transition-transform">
-			<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent/15 to-accent/5 flex items-center justify-center shrink-0">
+		<a
+			href="/markets"
+			class="bg-gradient-to-br from-accent/25 to-accent/10 text-[#1b4332] rounded-2xl p-4 flex flex-col gap-3 shadow-lg shadow-accent/10 active:scale-[0.97] transition-transform"
+		>
+			<div class="w-11 h-11 rounded-full bg-accent/20 flex items-center justify-center">
 				<TrendingUp size={22} class="text-accent" />
 			</div>
-			<div class="flex-1 min-w-0">
-				<h3 class="font-semibold text-[15px]">Market Prices</h3>
-				<p class="text-xs text-base-content/50 mt-0.5">Latest livestock market prices</p>
+			<div>
+				<span class="text-sm font-semibold block">Market Prices</span>
+				<span class="text-[11px] text-[#1b4332]/60">Live livestock prices by state</span>
 			</div>
-			<ChevronRight size={18} class="text-base-content/20 group-hover:text-base-content/40 transition-colors shrink-0" />
 		</a>
-
-		{#if showPreviewFeatures}
-		<a href="/alerts" class="group flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm border border-base-300/50 active:scale-[0.98] transition-transform">
-			<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-error/15 to-error/5 flex items-center justify-center shrink-0">
-				<AlertTriangle size={22} class="text-error" />
-			</div>
-			<div class="flex-1 min-w-0">
-				<h3 class="font-semibold text-[15px]">Disease Alerts</h3>
-				<p class="text-xs text-base-content/50 mt-0.5">Nearby outbreak warnings</p>
-			</div>
-			<ChevronRight size={18} class="text-base-content/20 group-hover:text-base-content/40 transition-colors shrink-0" />
-		</a>
-		{/if}
 	</div>
 
 	<!-- Tip Card -->

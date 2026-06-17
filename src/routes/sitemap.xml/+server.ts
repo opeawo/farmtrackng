@@ -16,7 +16,6 @@ const STATIC_PAGES: SitemapEntry[] = [
 	{ path: '/ai', changefreq: 'weekly', priority: 0.9 },
 	{ path: '/marketplace', changefreq: 'weekly', priority: 0.9 },
 	{ path: '/markets', changefreq: 'daily', priority: 0.9 },
-	{ path: '/alerts', changefreq: 'daily', priority: 0.7 },
 	{ path: '/about', changefreq: 'monthly', priority: 0.5 },
 	{ path: '/terms', changefreq: 'yearly', priority: 0.3 },
 	{ path: '/privacy', changefreq: 'yearly', priority: 0.3 }
