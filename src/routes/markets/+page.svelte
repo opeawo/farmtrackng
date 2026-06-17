@@ -44,8 +44,7 @@
 		{ id: 'sheep', label: 'Sheep', icon: '🐑' },
 		{ id: 'pig', label: 'Pig', icon: '🐷' },
 		{ id: 'fish', label: 'Fish', icon: '🐟' },
-		{ id: 'eggs', label: 'Eggs', icon: '🥚' },
-		{ id: 'feed', label: 'Feed', icon: '🌾' }
+		{ id: 'eggs', label: 'Eggs', icon: '🥚' }
 	];
 
 	const CATEGORY_ICON: Record<ListingCategory, string> = {
@@ -77,13 +76,16 @@
 
 	const states = $derived.by(() => {
 		if (!response) return [] as string[];
-		return [...new Set(response.prices.map((p) => p.state))].sort((a, b) => a.localeCompare(b));
+		return [...new Set(response.prices.filter((p) => p.category !== 'feed').map((p) => p.state))].sort(
+			(a, b) => a.localeCompare(b)
+		);
 	});
 
 	const visiblePrices = $derived.by(() => {
 		if (!response) return [] as AggregatedPrice[];
 		return response.prices.filter(
 			(p) =>
+				p.category !== 'feed' && // feed is not shown on the livestock price board
 				(selectedCategory === 'all' || p.category === selectedCategory) &&
 				(selectedState === 'all' || p.state === selectedState)
 		);
