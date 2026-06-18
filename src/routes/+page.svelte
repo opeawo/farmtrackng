@@ -120,7 +120,11 @@
 />
 
 <!-- Hero Header -->
-<div class="bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#40916c] text-white px-5 pt-6 pb-10 rounded-b-[2rem]">
+<!-- Photo by Feyza Yıldırım on Pexels: https://www.pexels.com/photo/11350565/ -->
+<div
+	class="relative text-white px-5 pt-6 pb-10 rounded-b-[2rem] bg-cover bg-center"
+	style="background-image: linear-gradient(135deg, rgba(27,67,50,0.94) 0%, rgba(45,106,79,0.82) 45%, rgba(64,145,108,0.62) 100%), url('/images/herd-of-cattle-grazing-green-pasture-farm-11350565.jpg');"
+>
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-center gap-2">
 			<div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
