@@ -30,8 +30,32 @@ function escapeXml(s: string): string {
 		.replace(/'/g, '&apos;');
 }
 
-export const GET: RequestHandler = async () => {
+export const GET: RequestHandler = async ({ fetch }) => {
 	const today = new Date().toISOString().slice(0, 10);
+
+	// One indexable deep link per (state, livestock) price point so search
+	// engines can discover /markets?state=…&type=… pages.
+	let priceEntries: SitemapEntry[] = [];
+	try {
+		const res = await fetch('/api/markets/prices');
+		const data = (await res.json()) as {
+			prices?: { state: string; category: string }[];
+		};
+		const seen = new Set<string>();
+		for (const p of data.prices ?? []) {
+			if (!p.state || !p.category || p.category === 'feed') continue;
+			const key = `${p.state}|${p.category}`;
+			if (seen.has(key)) continue;
+			seen.add(key);
+			priceEntries.push({
+				path: `/markets?state=${encodeURIComponent(p.state)}&type=${p.category}`,
+				changefreq: 'daily',
+				priority: 0.6
+			});
+		}
+	} catch {
+		priceEntries = [];
+	}
 
 	const entries: SitemapEntry[] = [
 		...STATIC_PAGES,
@@ -39,7 +63,8 @@ export const GET: RequestHandler = async () => {
 			path: `/marketplace/${item.id}`,
 			changefreq: 'weekly' as const,
 			priority: 0.8
-		}))
+		})),
+		...priceEntries
 	];
 
 	const body =

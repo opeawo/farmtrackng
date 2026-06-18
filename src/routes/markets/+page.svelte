@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import PriceVarianceChart from '$lib/components/markets/PriceVarianceChart.svelte';
 	import { RefreshCw, AlertCircle, Share2, Copy, Check, X, ChevronRight } from 'lucide-svelte';
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
 
 	type ListingCategory =
 		| 'poultry'
@@ -75,13 +77,28 @@
 	// Order livestock charts appear in the "All" overview.
 	const CHART_ORDER: ListingCategory[] = ['poultry', 'cattle', 'goat', 'sheep', 'pig', 'fish', 'eggs'];
 
-	let selectedCategory = $state<'all' | ListingCategory>('all');
-	let selectedState = $state<'all' | string>('all');
-	let loading = $state(true);
-	let response = $state<PricesResponse | null>(null);
+	// Seeded from the SSR load so deep links render (and crawl) immediately.
+	const initialState = data.q.state || 'all';
+	const initialType = (data.q.type as ListingCategory) || 'all';
+
+	let selectedCategory = $state<'all' | ListingCategory>(initialType);
+	let selectedState = $state<'all' | string>(initialState);
+	let loading = $state(false);
+	let refreshed = $state<PricesResponse | null>(null); // client refresh overrides SSR data
 	let loadError = $state<string | null>(null);
 	let copiedKey = $state<string | null>(null);
 	let selected = $state<AggregatedPrice | null>(null); // tapped bar → detail sheet
+
+	// SSR load data, overridden by a manual client refresh when present.
+	const response = $derived<PricesResponse | null>(
+		refreshed ?? {
+			fetchedAt: data.fetchedAt,
+			prices: data.prices as AggregatedPrice[],
+			stale: data.stale,
+			degraded: data.degraded,
+			error: data.error
+		}
+	);
 
 	function medianOf(nums: number[]): number {
 		if (!nums.length) return 0;
@@ -166,7 +183,7 @@
 		loadError = null;
 		try {
 			const res = await fetch('/api/markets/prices');
-			response = (await res.json()) as PricesResponse;
+			refreshed = (await res.json()) as PricesResponse;
 		} catch (err) {
 			console.error(err);
 			loadError = 'Could not load prices. Try again in a moment.';
@@ -200,17 +217,31 @@
 		return `${p.product}-${p.state}`;
 	}
 
-	function shareMessage(p: AggregatedPrice): string {
-		return `${p.product} in ${p.state}: ${formatNgn(p.priceNgn)}/kg (FarmPaddy price index) — ${pageUrl()}`;
+	function todayIso(): string {
+		return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos' }).format(new Date());
 	}
 
-	function pageUrl(stateParam?: string): string {
-		if (typeof window === 'undefined') return 'https://farmpaddy.com/markets';
-		const url = new URL(window.location.href);
-		const s = stateParam ?? (selectedState !== 'all' ? selectedState : null);
-		url.search = '';
-		if (s) url.searchParams.set('state', s);
-		return url.toString();
+	function origin(): string {
+		return typeof window !== 'undefined' ? window.location.origin : 'https://farmpaddy.com';
+	}
+
+	// Deep link to a single price point — the SEO/share URL format:
+	// /markets?state=Benue&type=cattle&date=2026-06-17
+	function priceUrl(p: AggregatedPrice): string {
+		const params = new URLSearchParams({ state: p.state, type: p.category, date: todayIso() });
+		return `${origin()}/markets?${params.toString()}`;
+	}
+
+	function pageUrl(): string {
+		const params = new URLSearchParams();
+		if (selectedState !== 'all') params.set('state', selectedState);
+		if (selectedCategory !== 'all') params.set('type', selectedCategory);
+		const qs = params.toString();
+		return `${origin()}/markets${qs ? `?${qs}` : ''}`;
+	}
+
+	function shareMessage(p: AggregatedPrice): string {
+		return `${p.product} in ${p.state}: ${formatNgn(p.priceNgn)}/kg (FarmPaddy price index) — ${priceUrl(p)}`;
 	}
 
 	async function copy(text: string, key: string) {
@@ -256,26 +287,25 @@
 		const url = new URL(window.location.href);
 		if (selectedState === 'all') url.searchParams.delete('state');
 		else url.searchParams.set('state', selectedState);
+		if (selectedCategory === 'all') url.searchParams.delete('type');
+		else url.searchParams.set('type', selectedCategory);
+		url.searchParams.delete('date'); // keep the live view's URL clean
 		history.replaceState(history.state, '', url);
 	}
 
 	$effect(() => {
-		// keep the URL in step with the chosen state for shareable links
+		// keep the URL in step with the chosen filters for shareable links
 		selectedState;
+		selectedCategory;
 		syncUrl();
-	});
-
-	onMount(() => {
-		const s = new URL(window.location.href).searchParams.get('state');
-		if (s) selectedState = s;
-		loadPrices();
 	});
 </script>
 
 <SEO
-	title="Nigerian Livestock & Poultry Market Prices"
-	description="FarmPaddy's livestock and poultry price index for Nigeria — modeled daily from market data collected by our field agents nationwide. Prices per kg for broilers, layers, cattle, goats, sheep, pigs and more, by state."
-	canonicalPath="/markets"
+	title={data.seo.title}
+	description={data.seo.description}
+	canonicalPath={data.seo.canonicalPath}
+	ogType={data.seo.ogType ?? 'website'}
 />
 
 <PageHeader title="Market Prices" />
