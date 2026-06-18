@@ -2,13 +2,11 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { user } from '$lib/stores/user';
-	import { livestockTypes } from '$lib/data/livestock-types';
-	import { nigerianStates } from '$lib/data/markets';
 	import { startRecording, stopRecording, transcribeAudio } from '$lib/utils/voice';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import {
 		Sparkles,
-		Camera,
+		Paperclip,
 		Mic,
 		Square,
 		Send,
@@ -35,7 +33,7 @@
 		id: string;
 		ts: number;
 		question: string;
-		species?: string;
+		species?: string; // legacy field kept for old entries; new entries leave it undefined
 		state?: string;
 		hadImage: boolean;
 		result: AiResult;
@@ -44,12 +42,9 @@
 	const HISTORY_KEY = 'farmtrack:ai-history';
 	const HISTORY_LIMIT = 20;
 
-	const speciesFromUrl = page.url.searchParams.get('species') ?? '';
 	const intentFromUrl = page.url.searchParams.get('intent') ?? '';
 
 	let question = $state('');
-	let species = $state(speciesFromUrl);
-	let stateName = $state('');
 	let imageDataUrl = $state<string | null>(null);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
@@ -65,9 +60,6 @@
 	let expandedHistoryId = $state<string | null>(null);
 
 	onMount(() => {
-		// Prefill state from the user profile if available.
-		if (!stateName && $user?.state) stateName = $user.state;
-
 		// Load history from localStorage.
 		try {
 			const raw = localStorage.getItem(HISTORY_KEY);
@@ -96,8 +88,6 @@
 
 	function reaskFromHistory(entry: ChatEntry) {
 		question = entry.question;
-		species = entry.species ?? '';
-		stateName = entry.state ?? '';
 		imageDataUrl = null; // images aren't persisted
 		expandedHistoryId = null;
 		// Scroll to top for the form
@@ -183,8 +173,9 @@
 			return;
 		}
 		const currentQuestion = question.trim();
-		const currentSpecies = species || undefined;
-		const currentState = stateName || undefined;
+		// State is sourced silently from the user profile if they've set their
+		// location on the homepage. The user never picks it on this page.
+		const currentState = $user?.state || undefined;
 		const currentHadImage = !!imageDataUrl;
 		loading = true;
 		try {
@@ -193,7 +184,6 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					question: currentQuestion,
-					species: currentSpecies,
 					state: currentState,
 					imageDataUrl
 				})
@@ -210,7 +200,6 @@
 				id: crypto.randomUUID(),
 				ts: Date.now(),
 				question: currentQuestion,
-				species: currentSpecies,
 				state: currentState,
 				hadImage: currentHadImage,
 				result: aiResult
@@ -276,60 +265,8 @@
 </div>
 
 <div class="px-4 -mt-4 space-y-4 pb-24">
-	<!-- Form Card -->
-	<div class="bg-white rounded-2xl p-4 shadow-sm border border-base-300/50 space-y-3">
-		<div class="grid grid-cols-2 gap-2">
-			<label class="block">
-				<span class="text-[11px] font-semibold text-base-content/60 uppercase tracking-wide">Species</span>
-				<select
-					bind:value={species}
-					class="select select-bordered select-sm w-full mt-1"
-				>
-					<option value="">Any</option>
-					{#each livestockTypes as t}
-						<option value={t.id}>{t.icon} {t.name}</option>
-					{/each}
-				</select>
-			</label>
-			<label class="block">
-				<span class="text-[11px] font-semibold text-base-content/60 uppercase tracking-wide">State (optional)</span>
-				<select
-					bind:value={stateName}
-					class="select select-bordered select-sm w-full mt-1"
-				>
-					<option value="">Any</option>
-					{#each nigerianStates as s}
-						<option value={s.name}>{s.name}</option>
-					{/each}
-				</select>
-			</label>
-		</div>
-
-		<div class="relative">
-			<textarea
-				bind:value={question}
-				placeholder="e.g. My layer hens are not eating and have green diarrhoea. What should I do?"
-				rows="4"
-				class="textarea textarea-bordered w-full resize-none pr-12"
-			></textarea>
-			<button
-				type="button"
-				onclick={toggleVoice}
-				disabled={transcribing}
-				class="absolute right-2 bottom-2 w-9 h-9 rounded-full flex items-center justify-center transition-colors {recording ? 'bg-error text-white animate-pulse' : 'bg-primary/10 text-primary hover:bg-primary/20'}"
-				aria-label={recording ? 'Stop recording' : 'Start voice input'}
-			>
-				{#if transcribing}
-					<span class="loading loading-spinner loading-xs"></span>
-				{:else if recording}
-					<Square size={16} />
-				{:else}
-					<Mic size={16} />
-				{/if}
-			</button>
-		</div>
-
-		<!-- Image picker -->
+	<!-- Composer -->
+	<div class="bg-white rounded-2xl p-3 shadow-sm border border-base-300/50 space-y-2">
 		<input
 			bind:this={fileInput}
 			type="file"
@@ -340,42 +277,72 @@
 		/>
 
 		{#if imageDataUrl}
-			<div class="relative">
-				<img src={imageDataUrl} alt="Selected" class="w-full max-h-48 object-cover rounded-xl border border-base-300" />
+			<div class="relative inline-block">
+				<img
+					src={imageDataUrl}
+					alt="Attached"
+					class="h-20 w-20 object-cover rounded-xl border border-base-300"
+				/>
 				<button
 					type="button"
 					onclick={clearImage}
-					class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center"
+					class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center shadow"
 					aria-label="Remove image"
 				>
-					<X size={16} />
+					<X size={12} />
 				</button>
 			</div>
-		{:else}
-			<button
-				type="button"
-				onclick={() => fileInput?.click()}
-				class="w-full border-2 border-dashed border-base-300 rounded-xl py-3 flex items-center justify-center gap-2 text-base-content/60 hover:text-primary hover:border-primary/40 transition-colors"
-			>
-				<Camera size={18} />
-				<span class="text-sm">Add a photo (optional)</span>
-			</button>
 		{/if}
 
-		<button
-			type="button"
-			onclick={submit}
-			disabled={loading}
-			class="btn btn-primary w-full gap-2"
-		>
-			{#if loading}
-				<span class="loading loading-spinner loading-sm"></span>
-				Thinking…
-			{:else}
-				<Send size={16} />
-				Ask Animal AI
-			{/if}
-		</button>
+		<textarea
+			bind:value={question}
+			placeholder="Ask anything about your livestock. Add a photo if it helps."
+			rows="4"
+			class="textarea textarea-ghost w-full resize-none focus:outline-none focus:border-transparent !bg-transparent px-1"
+		></textarea>
+
+		<div class="flex items-center justify-between gap-2 pt-1">
+			<div class="flex items-center gap-1">
+				<button
+					type="button"
+					onclick={() => fileInput?.click()}
+					class="w-10 h-10 rounded-full flex items-center justify-center text-base-content/60 hover:text-primary hover:bg-primary/10 transition-colors"
+					aria-label="Attach a photo"
+				>
+					<Paperclip size={18} />
+				</button>
+				<button
+					type="button"
+					onclick={toggleVoice}
+					disabled={transcribing}
+					class="w-10 h-10 rounded-full flex items-center justify-center transition-colors {recording ? 'bg-error text-white animate-pulse' : 'text-base-content/60 hover:text-primary hover:bg-primary/10'}"
+					aria-label={recording ? 'Stop recording' : 'Start voice input'}
+				>
+					{#if transcribing}
+						<span class="loading loading-spinner loading-xs"></span>
+					{:else if recording}
+						<Square size={18} />
+					{:else}
+						<Mic size={18} />
+					{/if}
+				</button>
+			</div>
+
+			<button
+				type="button"
+				onclick={submit}
+				disabled={loading || (!question.trim() && !imageDataUrl)}
+				class="btn btn-primary btn-sm gap-1.5 px-4 disabled:opacity-50"
+			>
+				{#if loading}
+					<span class="loading loading-spinner loading-xs"></span>
+					<span>Thinking…</span>
+				{:else}
+					<Send size={14} />
+					<span>Ask</span>
+				{/if}
+			</button>
+		</div>
 
 		{#if error}
 			<div class="bg-error/10 text-error border border-error/30 rounded-xl px-3 py-2 text-sm flex items-start gap-2">
@@ -441,7 +408,7 @@
 		<div class="bg-white/60 border border-dashed border-base-300 rounded-2xl p-4 flex items-start gap-3">
 			<ImageOff size={18} class="text-base-content/40 mt-0.5 shrink-0" />
 			<p class="text-xs text-base-content/60">
-				Your answer will appear here. Add a photo for better diagnosis, and pick a state if you're asking about market prices.
+				Your answer will appear here. Add a photo for visual diagnosis. Set your location on the home screen so price answers know where you are.
 			</p>
 		</div>
 	{/if}
