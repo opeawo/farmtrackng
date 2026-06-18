@@ -7,6 +7,17 @@ import { diseases } from '$lib/data/diseases';
 import { livestockTypes } from '$lib/data/livestock-types';
 import { nigerianStates } from '$lib/data/markets';
 import { SYSTEM_PROMPT } from '$lib/server/ai/persona';
+import * as marketCache from '$lib/server/markets/cache';
+import type { AggregatedPrice } from '$lib/server/markets/types';
+
+// Mirrors the cache payload written by /api/markets/prices.
+const MARKETS_CACHE_KEY = 'markets:index';
+const MAX_PRICE_ROWS = 30;
+interface MarketIndexCache {
+	fetchedAt: string;
+	prices: AggregatedPrice[];
+	degraded: boolean;
+}
 
 const MODEL = GEMINI_MODEL || 'gemini-flash-latest';
 
@@ -66,6 +77,8 @@ function buildContext(species?: string, state?: string): string {
 				.map((s) => `${s.name} (${s.majorMarkets[0] ?? 'major market'})`)
 				.join('; ')}.`;
 
+	const pricesBlock = buildMarketPricesBlock(state);
+
 	return `BACKGROUND KNOWLEDGE
 ${speciesLine}
 
@@ -73,7 +86,56 @@ Known diseases relevant to this question:
 ${diseaseLines}
 
 Markets context:
-${marketsLine}`;
+${marketsLine}${pricesBlock}`;
+}
+
+// Read the FarmPaddy Market Price Index from the in-memory cache (same key the
+// /api/markets/prices endpoint writes to) and format it into a context block
+// the model can ground price answers on. Returns '' when the cache is cold so
+// the AI gracefully falls back to "I don't have that yet" per the persona.
+function buildMarketPricesBlock(state?: string): string {
+	const entry = marketCache.get<MarketIndexCache>(MARKETS_CACHE_KEY);
+	if (!entry || !entry.data) return '';
+
+	const { fetchedAt, prices, degraded } = entry.data;
+	const userState = state?.trim();
+
+	// Filter: if we know the user's state, scope to it; otherwise take the top N
+	// by sample size so the token cost stays bounded.
+	let rows: AggregatedPrice[];
+	let scope: string;
+	if (userState) {
+		rows = prices.filter((p) => p.state.toLowerCase() === userState.toLowerCase());
+		scope = `state=${userState}`;
+	} else {
+		rows = [...prices]
+			.sort((a, b) => b.sampleSize - a.sampleSize)
+			.slice(0, MAX_PRICE_ROWS);
+		scope = 'top by sample size, all Nigeria';
+	}
+
+	const header = `
+
+RECENT MARKET PRICES (FarmPaddy index — modeled per kg from field-agent data)
+Last refreshed: ${fetchedAt}${degraded ? ' — thin dataset, treat as low confidence' : ''}
+Scope: ${scope}
+Use these figures when the farmer asks about prices. Always include the state, the per-kg figure, the low–high range when available, and the confidence. Never name a third-party site as the source — this is FarmPaddy's own estimate.`;
+
+	if (rows.length === 0) {
+		return `${header}
+No rows for ${userState ?? 'any state'} in the current index. Tell the farmer no price has been collected for their state yet and suggest checking the Market Prices page later.`;
+	}
+
+	const lines = rows.slice(0, MAX_PRICE_ROWS).map((p) => {
+		const range =
+			p.lowNgn !== undefined && p.highNgn !== undefined
+				? ` (range ₦${p.lowNgn.toLocaleString('en-NG')}–₦${p.highNgn.toLocaleString('en-NG')})`
+				: '';
+		return `- ${p.product} (${p.category}, ${p.state}): ₦${p.priceNgn.toLocaleString('en-NG')} ${p.unit}${range}, confidence ${p.confidence}%, ${p.sampleSize} samples`;
+	});
+
+	return `${header}
+${lines.join('\n')}`;
 }
 
 function parseImageDataUrl(dataUrl: string): { mimeType: string; data: string } | null {
