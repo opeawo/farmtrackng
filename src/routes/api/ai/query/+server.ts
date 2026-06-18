@@ -8,15 +8,46 @@ import { livestockTypes } from '$lib/data/livestock-types';
 import { nigerianStates } from '$lib/data/markets';
 import { SYSTEM_PROMPT } from '$lib/server/ai/persona';
 import * as marketCache from '$lib/server/markets/cache';
+import { fetchAggregatedPrices } from '$lib/server/markets/aggregate';
 import type { AggregatedPrice } from '$lib/server/markets/types';
 
 // Mirrors the cache payload written by /api/markets/prices.
 const MARKETS_CACHE_KEY = 'markets:index';
+const MARKETS_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_PRICE_ROWS = 30;
 interface MarketIndexCache {
 	fetchedAt: string;
 	prices: AggregatedPrice[];
 	degraded: boolean;
+}
+
+// Heuristic: is the user asking about a price? If yes and the cache is cold,
+// we warm it ourselves so the model sees real figures on the very first ask
+// from a fresh Vercel instance instead of relying on someone hitting /markets
+// first. Non-price questions stay fast (no Sheets fetch).
+const PRICE_QUESTION_RE =
+	/\b(price|cost|how much|how-much|rate|naira|n\d|₦|per kg|per\s*kilo|going for|sell|buying|selling|market price)\b/i;
+function looksLikePriceQuestion(q: string): boolean {
+	return q ? PRICE_QUESTION_RE.test(q) : false;
+}
+
+async function ensureMarketCacheWarm(): Promise<void> {
+	const existing = marketCache.get<MarketIndexCache>(MARKETS_CACHE_KEY);
+	if (existing && !marketCache.isExpired(existing)) return;
+	try {
+		const { prices, degraded } = await fetchAggregatedPrices();
+		if (prices.length > 0) {
+			marketCache.set<MarketIndexCache>(
+				MARKETS_CACHE_KEY,
+				{ fetchedAt: new Date().toISOString(), prices, degraded },
+				MARKETS_TTL_MS
+			);
+		}
+	} catch (err) {
+		// Sheet fetch failed — leave the cache as-is so the AI gracefully
+		// reports no current price data per the persona rules.
+		console.warn('[api/ai/query] price cache warm failed', err);
+	}
 }
 
 const MODEL = GEMINI_MODEL || 'gemini-flash-latest';
@@ -155,6 +186,13 @@ export const POST: RequestHandler = async ({ request }) => {
 	const question = (body.question ?? '').trim();
 	if (!question && !body.imageDataUrl) {
 		return json({ error: 'Please type a question or attach a photo.' }, { status: 400 });
+	}
+
+	// If the question looks like a price ask and the market index isn't cached
+	// yet on this Vercel instance, fetch it now so the model has real figures
+	// to ground on. Non-price questions skip this and stay fast.
+	if (looksLikePriceQuestion(question)) {
+		await ensureMarketCacheWarm();
 	}
 
 	const context = buildContext(body.species, body.state);
