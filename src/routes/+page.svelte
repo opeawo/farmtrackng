@@ -122,7 +122,7 @@
 <!-- Hero Header -->
 <!-- Photo by Feyza Yıldırım on Pexels: https://www.pexels.com/photo/11350565/ -->
 <div
-	class="relative text-white px-5 pt-6 pb-10 rounded-b-[2rem] bg-cover bg-center"
+	class="relative text-white px-5 pt-6 pb-24 rounded-b-[2rem] bg-cover bg-center"
 	style="background-image: linear-gradient(135deg, rgba(27,67,50,0.94) 0%, rgba(45,106,79,0.82) 45%, rgba(64,145,108,0.62) 100%), url('/images/herd-of-cattle-grazing-green-pasture-farm-11350565.jpg');"
 >
 	<div class="flex items-center justify-between mb-5">
@@ -174,7 +174,7 @@
 	{/if}
 </div>
 
-<div class="px-4 -mt-4 space-y-5 pb-4">
+<div class="relative z-10 px-4 -mt-20 space-y-5 pb-4">
 	<!-- Animal AI — primary feature -->
 	<a
 		href="/ai"
