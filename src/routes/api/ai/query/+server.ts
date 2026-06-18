@@ -21,33 +21,38 @@ interface MarketIndexCache {
 	degraded: boolean;
 }
 
-// Heuristic: is the user asking about a price? If yes and the cache is cold,
-// we warm it ourselves so the model sees real figures on the very first ask
-// from a fresh Vercel instance instead of relying on someone hitting /markets
-// first. Non-price questions stay fast (no Sheets fetch).
-const PRICE_QUESTION_RE =
-	/\b(price|cost|how much|how-much|rate|naira|n\d|₦|per kg|per\s*kilo|going for|sell|buying|selling|market price)\b/i;
-function looksLikePriceQuestion(q: string): boolean {
-	return q ? PRICE_QUESTION_RE.test(q) : false;
-}
-
-async function ensureMarketCacheWarm(): Promise<void> {
+// Pull the FarmPaddy Market Price Index for every AI call. Same in-memory
+// cache the /api/markets/prices endpoint uses; on cold cache (fresh Vercel
+// instance) we read the Google Sheet ourselves so the AI always has data to
+// ground on. Subsequent calls within 24h hit the warm cache.
+async function ensureMarketCacheWarm(): Promise<MarketIndexCache | null> {
 	const existing = marketCache.get<MarketIndexCache>(MARKETS_CACHE_KEY);
-	if (existing && !marketCache.isExpired(existing)) return;
+	if (existing && !marketCache.isExpired(existing)) {
+		console.log(
+			`[api/ai/query] price cache hit: ${existing.data.prices.length} rows, fetched ${existing.data.fetchedAt}`
+		);
+		return existing.data;
+	}
 	try {
 		const { prices, degraded } = await fetchAggregatedPrices();
+		console.log(
+			`[api/ai/query] price cache warm: fetched ${prices.length} rows, degraded=${degraded}`
+		);
 		if (prices.length > 0) {
-			marketCache.set<MarketIndexCache>(
-				MARKETS_CACHE_KEY,
-				{ fetchedAt: new Date().toISOString(), prices, degraded },
-				MARKETS_TTL_MS
-			);
+			const data: MarketIndexCache = {
+				fetchedAt: new Date().toISOString(),
+				prices,
+				degraded
+			};
+			marketCache.set<MarketIndexCache>(MARKETS_CACHE_KEY, data, MARKETS_TTL_MS);
+			return data;
 		}
 	} catch (err) {
 		// Sheet fetch failed — leave the cache as-is so the AI gracefully
 		// reports no current price data per the persona rules.
 		console.warn('[api/ai/query] price cache warm failed', err);
 	}
+	return existing?.data ?? null;
 }
 
 const MODEL = GEMINI_MODEL || 'gemini-flash-latest';
@@ -120,44 +125,58 @@ Markets context:
 ${marketsLine}${pricesBlock}`;
 }
 
-// Read the FarmPaddy Market Price Index from the in-memory cache (same key the
-// /api/markets/prices endpoint writes to) and format it into a context block
-// the model can ground price answers on. Returns '' when the cache is cold so
-// the AI gracefully falls back to "I don't have that yet" per the persona.
+// Read the FarmPaddy Market Price Index from the in-memory cache and format
+// it into a context block the model MUST use for any price question. The
+// block is always emitted (even if empty) with an explicit instruction so
+// the model never tries to substitute its own memory.
 function buildMarketPricesBlock(state?: string): string {
 	const entry = marketCache.get<MarketIndexCache>(MARKETS_CACHE_KEY);
-	if (!entry || !entry.data) return '';
-
-	const { fetchedAt, prices, degraded } = entry.data;
 	const userState = state?.trim();
 
-	// Filter: if we know the user's state, scope to it; otherwise take the top N
-	// by sample size so the token cost stays bounded.
-	let rows: AggregatedPrice[];
-	let scope: string;
-	if (userState) {
-		rows = prices.filter((p) => p.state.toLowerCase() === userState.toLowerCase());
-		scope = `state=${userState}`;
-	} else {
-		rows = [...prices]
-			.sort((a, b) => b.sampleSize - a.sampleSize)
-			.slice(0, MAX_PRICE_ROWS);
-		scope = 'top by sample size, all Nigeria';
+	// Cache miss entirely — tell the model explicitly that the index is
+	// unavailable so it can give a graceful, non-hallucinated reply.
+	if (!entry || !entry.data || entry.data.prices.length === 0) {
+		console.log(`[api/ai/query] price block: index unavailable`);
+		return `
+
+RECENT MARKET PRICES (FarmPaddy index — modeled per kg from field-agent data)
+The price index is not available right now. If the farmer asks about a price, tell them honestly that the live index is temporarily unavailable and suggest they check the Market Prices page in a few minutes.`;
 	}
+
+	const { fetchedAt, prices, degraded } = entry.data;
+
+	// Order rows: requested state first (so price questions land on it), then
+	// the rest by sample size for breadth. Cap at MAX_PRICE_ROWS total so
+	// token cost stays bounded.
+	const stateRows = userState
+		? prices.filter((p) => p.state.toLowerCase() === userState.toLowerCase())
+		: [];
+	const otherRows = prices
+		.filter((p) => !userState || p.state.toLowerCase() !== userState.toLowerCase())
+		.sort((a, b) => b.sampleSize - a.sampleSize);
+	const rows = [...stateRows, ...otherRows].slice(0, MAX_PRICE_ROWS);
+
+	const scopeNote = userState
+		? stateRows.length > 0
+			? `User is in ${userState}. ${stateRows.length} row(s) for ${userState} listed first; remaining rows are other states as comparable reference.`
+			: `User is in ${userState}, but the index has no rows for ${userState} yet. Other states are shown as a comparable reference — quote those with the explicit caveat that they are not the user's state.`
+		: `Top rows across Nigeria, ordered by sample size.`;
 
 	const header = `
 
 RECENT MARKET PRICES (FarmPaddy index — modeled per kg from field-agent data)
 Last refreshed: ${fetchedAt}${degraded ? ' — thin dataset, treat as low confidence' : ''}
-Scope: ${scope}
-Use these figures when the farmer asks about prices. Always include the state, the per-kg figure, the low–high range when available, and the confidence. Never name a third-party site as the source — this is FarmPaddy's own estimate.`;
+${scopeNote}
 
-	if (rows.length === 0) {
-		return `${header}
-No rows for ${userState ?? 'any state'} in the current index. Tell the farmer no price has been collected for their state yet and suggest checking the Market Prices page later.`;
-	}
+RULES FOR PRICE QUESTIONS:
+- USE this table. Do NOT refuse a price question while there are rows in it.
+- Quote the per-kg figure, the low–high range when given, the confidence, and the state.
+- If the user's exact livestock isn't in the user's state, use the closest comparable category in that state (e.g. broiler ⇄ poultry, ram ⇄ sheep), and say so plainly.
+- If neither exact nor close match exists in the user's state, quote rows from other states and label them clearly as out-of-state references.
+- This is FarmPaddy's own modeled estimate — never name a third-party site as the source.
+- End every price answer reminding the farmer to confirm with a local seller before relying on it.`;
 
-	const lines = rows.slice(0, MAX_PRICE_ROWS).map((p) => {
+	const lines = rows.map((p) => {
 		const range =
 			p.lowNgn !== undefined && p.highNgn !== undefined
 				? ` (range ₦${p.lowNgn.toLocaleString('en-NG')}–₦${p.highNgn.toLocaleString('en-NG')})`
@@ -165,6 +184,9 @@ No rows for ${userState ?? 'any state'} in the current index. Tell the farmer no
 		return `- ${p.product} (${p.category}, ${p.state}): ₦${p.priceNgn.toLocaleString('en-NG')} ${p.unit}${range}, confidence ${p.confidence}%, ${p.sampleSize} samples`;
 	});
 
+	console.log(
+		`[api/ai/query] price block: ${rows.length} rows (${stateRows.length} for state=${userState ?? '∅'})`
+	);
 	return `${header}
 ${lines.join('\n')}`;
 }
@@ -188,14 +210,15 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json({ error: 'Please type a question or attach a photo.' }, { status: 400 });
 	}
 
-	// If the question looks like a price ask and the market index isn't cached
-	// yet on this Vercel instance, fetch it now so the model has real figures
-	// to ground on. Non-price questions skip this and stay fast.
-	if (looksLikePriceQuestion(question)) {
-		await ensureMarketCacheWarm();
-	}
+	// Always pull the latest market index so the model has prices to ground on
+	// regardless of whether /markets has been visited first. ~1 Sheets fetch
+	// per Vercel instance per 24h; everything else hits the in-memory cache.
+	await ensureMarketCacheWarm();
 
 	const context = buildContext(body.species, body.state);
+	console.log(
+		`[api/ai/query] state=${body.state ?? '∅'} contextChars=${context.length}`
+	);
 
 	const parts: Part[] = [
 		{ text: `${context}\n\nFARMER QUESTION:\n${question || '(no text, see attached photo)'}` }
