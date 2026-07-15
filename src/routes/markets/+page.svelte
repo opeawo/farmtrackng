@@ -18,6 +18,7 @@
 		| 'fish'
 		| 'feed'
 		| 'eggs'
+		| 'vaccine'
 		| 'other';
 
 	interface AggregatedPrice {
@@ -48,7 +49,8 @@
 		{ id: 'sheep', label: 'Sheep', icon: '🐑' },
 		{ id: 'pig', label: 'Pig', icon: '🐷' },
 		{ id: 'fish', label: 'Fish', icon: '🐟' },
-		{ id: 'eggs', label: 'Eggs', icon: '🥚' }
+		{ id: 'eggs', label: 'Eggs', icon: '🥚' },
+		{ id: 'vaccine', label: 'Vaccines', icon: '💉' }
 	];
 
 	const CATEGORY_ICON: Record<ListingCategory, string> = {
@@ -59,6 +61,7 @@
 		pig: '🐷',
 		fish: '🐟',
 		eggs: '🥚',
+		vaccine: '💉',
 		feed: '🌾',
 		other: '🐾'
 	};
@@ -72,11 +75,12 @@
 		pig: '#cb6c79',
 		fish: '#3a7ca5',
 		eggs: '#c9a227',
+		vaccine: '#7b6ca8',
 		feed: '#84a98c',
 		other: '#84a98c'
 	};
 	// Order livestock charts appear in the "All" overview.
-	const CHART_ORDER: ListingCategory[] = ['poultry', 'cattle', 'goat', 'sheep', 'pig', 'fish', 'eggs'];
+	const CHART_ORDER: ListingCategory[] = ['poultry', 'cattle', 'goat', 'sheep', 'pig', 'fish', 'eggs', 'vaccine'];
 
 	// Seeded from the SSR load so deep links render (and crawl) immediately.
 	const initialState = data.q.state || 'all';
@@ -108,38 +112,52 @@
 		return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
 	}
 
-	interface ChartGroup {
+	function categoryLabel(cat: ListingCategory): string {
+		return CATEGORY_OPTIONS.find((o) => o.id === cat)?.label ?? (cat === 'other' ? 'Other' : cat);
+	}
+
+	interface ProductChart {
+		product: string;
 		category: ListingCategory;
-		label: string;
+		label: string; // the variant name itself, e.g. "Broiler - Large"
 		icon: string;
 		color: string;
-		points: AggregatedPrice[];
+		points: AggregatedPrice[]; // one point per state
 		median: number;
 		min: number;
 		max: number;
 		maxScale: number;
-		count: number; // product×state price points
-		stateCount: number; // unique states represented
+		count: number; // states represented (= points.length)
+		stateCount: number;
 	}
 
-	// One chart per livestock type (for the All-states overview / zoomed view).
-	const chartsByCategory = $derived.by<ChartGroup[]>(() => {
+	// How many variants to preview per category in the All-categories overview
+	// before the rest collapse behind a "view all" link.
+	const OVERVIEW_VARIANTS_PER_CATEGORY = 4;
+
+	// One chart per product variant (each type of chicken, egg, etc.) rather than
+	// one lumped chart per category — so variants are never mixed together. Each
+	// chart plots that single variant's price across states.
+	const productCharts = $derived.by<ProductChart[]>(() => {
 		if (!response) return [];
-		const byCat = new Map<ListingCategory, AggregatedPrice[]>();
+		const byProduct = new Map<string, AggregatedPrice[]>();
 		for (const p of response.prices) {
 			if (p.category === 'feed') continue;
-			const arr = byCat.get(p.category) ?? [];
+			const arr = byProduct.get(p.product) ?? [];
 			arr.push(p);
-			byCat.set(p.category, arr);
+			byProduct.set(p.product, arr);
 		}
-		const order = [...CHART_ORDER, ...[...byCat.keys()].filter((c) => !CHART_ORDER.includes(c))];
-		const out: ChartGroup[] = [];
-		for (const cat of order) {
-			const pts = byCat.get(cat);
-			if (!pts || pts.length === 0) continue;
+		const catRank = (c: ListingCategory) => {
+			const i = CHART_ORDER.indexOf(c);
+			return i === -1 ? CHART_ORDER.length : i;
+		};
+		const out: ProductChart[] = [];
+		for (const [product, pts] of byProduct) {
+			const cat = pts[0].category;
 			out.push({
+				product,
 				category: cat,
-				label: CATEGORY_OPTIONS.find((o) => o.id === cat)?.label ?? cat,
+				label: product,
 				icon: CATEGORY_ICON[cat],
 				color: CATEGORY_COLOR[cat],
 				points: [...pts].sort((a, b) => b.priceNgn - a.priceNgn),
@@ -151,10 +169,54 @@
 				stateCount: new Set(pts.map((p) => p.state)).size
 			});
 		}
+		// Group by category (overview order); within a category, most-reported
+		// variant first, then most expensive.
+		out.sort(
+			(a, b) =>
+				catRank(a.category) - catRank(b.category) ||
+				b.stateCount - a.stateCount ||
+				b.median - a.median
+		);
 		return out;
 	});
 
-	const activeChart = $derived(chartsByCategory.find((c) => c.category === selectedCategory));
+	// Variant charts for the currently selected category (single-category view).
+	const productChartsForSelected = $derived(
+		productCharts.filter((c) => c.category === selectedCategory)
+	);
+
+	interface OverviewSection {
+		category: ListingCategory;
+		label: string;
+		icon: string;
+		charts: ProductChart[]; // capped preview
+		variantCount: number; // total variants in this category
+	}
+
+	// The All-categories overview: a section per category, previewing its top
+	// variants with a link to reveal the rest.
+	const overviewSections = $derived.by<OverviewSection[]>(() => {
+		const byCat = new Map<ListingCategory, ProductChart[]>();
+		for (const c of productCharts) {
+			const arr = byCat.get(c.category) ?? [];
+			arr.push(c);
+			byCat.set(c.category, arr);
+		}
+		const order = [
+			...CHART_ORDER.filter((c) => byCat.has(c)),
+			...[...byCat.keys()].filter((c) => !CHART_ORDER.includes(c))
+		];
+		return order.map((cat) => {
+			const charts = byCat.get(cat)!;
+			return {
+				category: cat,
+				label: categoryLabel(cat),
+				icon: CATEGORY_ICON[cat],
+				charts: charts.slice(0, OVERVIEW_VARIANTS_PER_CATEGORY),
+				variantCount: charts.length
+			};
+		});
+	});
 
 	const watDate = new Intl.DateTimeFormat('en-GB', {
 		timeZone: 'Africa/Lagos',
@@ -453,70 +515,87 @@
 			</div>
 		{/if}
 	{:else if selectedCategory !== 'all'}
-		<!-- One livestock selected → full variance chart across states -->
-		{#if activeChart}
-			<div class="bg-base-100 rounded-xl shadow-sm border border-base-300 p-4">
-				<div class="flex items-center justify-between mb-1">
-					<span class="flex items-center gap-2">
-						<span class="text-2xl">{activeChart.icon}</span>
-						<span class="font-bold">{activeChart.label}</span>
-					</span>
-					<span class="text-xs text-base-content/50">{activeChart.stateCount} states</span>
-				</div>
-				<p class="text-[11px] text-base-content/50 mb-3">
-					Median {formatNgn(activeChart.median)}{unitSuffix(activeChart.category)} · {formatNgn(activeChart.min)}–{formatNgn(
-						activeChart.max
-					)}
-				</p>
-				<PriceVarianceChart
-					points={activeChart.points}
-					color={activeChart.color}
-					maxValue={activeChart.maxScale}
-					medianValue={activeChart.median}
-					onselect={(p) => (selected = p)}
-				/>
-				<p class="text-[10px] text-base-content/40 mt-3">
+		<!-- One category selected → a variance chart per variant across states -->
+		{#if productChartsForSelected.length === 0}
+			<div class="text-center py-8 text-sm text-base-content/50">
+				No prices for this category yet.
+			</div>
+		{:else}
+			<div class="space-y-3">
+				{#each productChartsForSelected as c (c.product)}
+					<div class="bg-base-100 rounded-xl shadow-sm border border-base-300 p-4">
+						<div class="flex items-center justify-between gap-2 mb-1">
+							<span class="flex items-center gap-2 min-w-0">
+								<span class="text-xl shrink-0">{c.icon}</span>
+								<span class="font-bold truncate">{c.label}</span>
+							</span>
+							<span class="text-xs text-base-content/50 shrink-0">{c.stateCount} states</span>
+						</div>
+						<p class="text-[11px] text-base-content/50 mb-3">
+							Median {formatNgn(c.median)}{unitSuffix(c.category)} · {formatNgn(c.min)}–{formatNgn(
+								c.max
+							)}
+						</p>
+						<PriceVarianceChart
+							points={c.points}
+							color={c.color}
+							maxValue={c.maxScale}
+							medianValue={c.median}
+							onselect={(p) => (selected = p)}
+						/>
+					</div>
+				{/each}
+				<p class="text-[10px] text-base-content/40 px-1">
 					Dashed line = national median. Tap a bar for details.
 				</p>
 			</div>
-		{:else}
-			<div class="text-center py-8 text-sm text-base-content/50">
-				No prices for this livestock yet.
-			</div>
 		{/if}
 	{:else}
-		<!-- All livestock → one mini variance chart per type -->
-		<div class="space-y-3">
-			{#each chartsByCategory as c (c.category)}
-				<div class="bg-base-100 rounded-xl shadow-sm border border-base-300 p-4">
-					<button
-						type="button"
-						class="flex items-center justify-between w-full gap-2 mb-2.5"
-						onclick={() => (selectedCategory = c.category)}
-					>
+		<!-- All categories → a section per category, one mini chart per variant -->
+		<div class="space-y-6">
+			{#each overviewSections as sec (sec.category)}
+				<div class="space-y-2.5">
+					<div class="flex items-center justify-between px-0.5">
 						<span class="flex items-center gap-2 min-w-0">
-							<span class="text-xl shrink-0">{c.icon}</span>
-							<span class="font-semibold text-sm">{c.label}</span>
+							<span class="text-lg shrink-0">{sec.icon}</span>
+							<span class="font-bold text-sm">{sec.label}</span>
 						</span>
-						<span class="flex items-center text-[11px] text-base-content/50 shrink-0">
-							{formatNgn(c.median)}{unitSuffix(c.category)} · {c.stateCount} states<ChevronRight size={13} />
+						<span class="text-[11px] text-base-content/50 shrink-0">
+							{sec.variantCount}
+							{sec.variantCount === 1 ? 'variant' : 'variants'}
 						</span>
-					</button>
-					<PriceVarianceChart
-						points={c.points.slice(0, 7)}
-						color={c.color}
-						maxValue={c.maxScale}
-						medianValue={c.median}
-						compact
-						onselect={(p) => (selected = p)}
-					/>
-					{#if c.count > 7}
+					</div>
+					{#each sec.charts as c (c.product)}
+						<div class="bg-base-100 rounded-xl shadow-sm border border-base-300 p-4">
+							<button
+								type="button"
+								class="flex items-center justify-between w-full gap-2 mb-2.5"
+								onclick={() => (selectedCategory = sec.category)}
+							>
+								<span class="font-semibold text-sm truncate min-w-0 text-left">{c.label}</span>
+								<span class="flex items-center text-[11px] text-base-content/50 shrink-0">
+									{formatNgn(c.median)}{unitSuffix(c.category)} · {c.stateCount} states<ChevronRight
+										size={13}
+									/>
+								</span>
+							</button>
+							<PriceVarianceChart
+								points={c.points.slice(0, 7)}
+								color={c.color}
+								maxValue={c.maxScale}
+								medianValue={c.median}
+								compact
+								onselect={(p) => (selected = p)}
+							/>
+						</div>
+					{/each}
+					{#if sec.variantCount > sec.charts.length}
 						<button
 							type="button"
-							class="text-[11px] text-primary font-medium mt-2"
-							onclick={() => (selectedCategory = c.category)}
+							class="text-[11px] text-primary font-medium px-1"
+							onclick={() => (selectedCategory = sec.category)}
 						>
-							View all {c.count} prices →
+							View all {sec.variantCount} {sec.label} variants →
 						</button>
 					{/if}
 				</div>

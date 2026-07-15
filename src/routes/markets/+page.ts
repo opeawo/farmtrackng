@@ -34,6 +34,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 	pig: 'Pig',
 	fish: 'Fish',
 	eggs: 'Eggs',
+	vaccine: 'Vaccines',
 	feed: 'Feed',
 	other: 'Livestock'
 };

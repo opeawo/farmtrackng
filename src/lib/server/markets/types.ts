@@ -15,6 +15,7 @@ export const LISTING_CATEGORIES: ListingCategory[] = [
 	'fish',
 	'feed',
 	'eggs',
+	'vaccine',
 	'other'
 ];
 

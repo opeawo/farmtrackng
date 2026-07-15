@@ -11,25 +11,35 @@ export type ListingCategory =
 	| 'fish'
 	| 'feed'
 	| 'eggs'
+	| 'vaccine'
 	| 'other';
 
-export type PriceUnit = 'per head' | 'per kg';
+export type PriceUnit = 'per head' | 'per kg' | 'per dose';
 
 // Livestock traded per animal in Nigerian markets; everything else is per kg.
 export const PER_HEAD_CATEGORIES: ReadonlySet<ListingCategory> = new Set(['cattle', 'goat']);
+// Vaccines are sold and quoted per dose (vial-dose), not by weight.
+export const PER_DOSE_CATEGORIES: ReadonlySet<ListingCategory> = new Set(['vaccine']);
 
 export function unitForCategory(category: string): PriceUnit {
-	return PER_HEAD_CATEGORIES.has(category as ListingCategory) ? 'per head' : 'per kg';
+	if (PER_HEAD_CATEGORIES.has(category as ListingCategory)) return 'per head';
+	if (PER_DOSE_CATEGORIES.has(category as ListingCategory)) return 'per dose';
+	return 'per kg';
 }
 
-export function unitSuffix(category: string): '/head' | '/kg' {
-	return PER_HEAD_CATEGORIES.has(category as ListingCategory) ? '/head' : '/kg';
+export function unitSuffix(category: string): '/head' | '/kg' | '/dose' {
+	if (PER_HEAD_CATEGORIES.has(category as ListingCategory)) return '/head';
+	if (PER_DOSE_CATEGORIES.has(category as ListingCategory)) return '/dose';
+	return '/kg';
 }
 
 // Map a raw livestock/product name to a display category (for icons, filters
 // and pricing units).
 export function categoryFor(product: string): ListingCategory {
 	const p = product.toLowerCase();
+	// Vaccines first: names like "Newcastle vaccine" or "Fowl pox vaccine" would
+	// otherwise match a species keyword and be mis-filed under that animal.
+	if (/vaccin|lasota|gumboro|komarov|newcastle|antigen|serum/.test(p)) return 'vaccine';
 	if (/cattle|cow|beef|bull|zebu|bunaji/.test(p)) return 'cattle';
 	if (/goat|chevon/.test(p)) return 'goat';
 	if (/sheep|ram|mutton|lamb|ewe/.test(p)) return 'sheep';
