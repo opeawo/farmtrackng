@@ -1,32 +1,20 @@
 // Aggregate raw field-agent price entries into FarmPaddy's modeled price index.
 //
 // The agent intake (Google Sheet) is the only source. We group the raw entries
-// by livestock type + state and compute a robust representative price per kg
+// by livestock type + state and compute a robust representative price — per
+// head for cattle and goats, per kg for everything else —
 // (outlier-trimmed median), a plausible low–high range, and a confidence score
 // from sample size and price spread. Done deterministically in code so it is
 // instant and scales to thousands of rows. The output carries no source
 // identity — it is presented as FarmPaddy's own index.
 
 import { getPriceRows, type PriceRow } from './sheets';
-import type { AggregatedPrice, ListingCategory } from './types';
+import { categoryFor, unitForCategory } from '$lib/markets/units';
+import type { AggregatedPrice } from './types';
 
 export interface AggregateResult {
 	prices: AggregatedPrice[];
 	degraded: boolean;
-}
-
-// Map a raw livestock/product name to a display category (for the icons/filter).
-function categoryFor(product: string): ListingCategory {
-	const p = product.toLowerCase();
-	if (/cattle|cow|beef|bull|zebu|bunaji/.test(p)) return 'cattle';
-	if (/goat|chevon/.test(p)) return 'goat';
-	if (/sheep|ram|mutton|lamb|ewe/.test(p)) return 'sheep';
-	if (/pig|pork|hog|swine|boar/.test(p)) return 'pig';
-	if (/poultry|chicken|broiler|layer|cockerel|fowl|turkey|duck|bird/.test(p)) return 'poultry';
-	if (/fish|catfish|tilapia/.test(p)) return 'fish';
-	if (/egg/.test(p)) return 'eggs';
-	if (/feed|grain|fodder|maize|mash|meal/.test(p)) return 'feed';
-	return 'other';
 }
 
 function median(sorted: number[]): number {
@@ -107,11 +95,12 @@ export async function fetchAggregatedPrices(): Promise<AggregateResult> {
 		const sorted = [...g.prices].sort((a, b) => a - b);
 		const kept = trimOutliers(sorted);
 		const mean = kept.reduce((s, v) => s + v, 0) / kept.length;
+		const category = categoryFor(g.product);
 		prices.push({
 			product: g.product,
-			category: categoryFor(g.product),
+			category,
 			state: g.state,
-			unit: 'per kg',
+			unit: unitForCategory(category),
 			priceNgn: Math.round(median(kept)),
 			lowNgn: Math.round(kept[0]),
 			highNgn: Math.round(kept[kept.length - 1]),

@@ -7,6 +7,7 @@ import {
 	appendPriceRow,
 	normalisePhone
 } from '$lib/server/markets/sheets';
+import { categoryFor, unitForCategory } from '$lib/markets/units';
 
 // Today's timestamp in West Africa Time (GMT+1), "YYYY-MM-DD HH:mm:ss".
 function nowWat(): string {
@@ -98,7 +99,8 @@ export const actions: Actions = {
 		const errors: string[] = [];
 		if (!ctx.markets.includes(market)) errors.push('Choose a market in your state.');
 		if (!ctx.livestockTypes.includes(product)) errors.push('Choose a livestock type from the list.');
-		if (!Number.isFinite(price) || price <= 0) errors.push('Enter a valid price in ₦/kg.');
+		if (!Number.isFinite(price) || price <= 0)
+			errors.push(`Enter a valid price in ₦ ${unitForCategory(categoryFor(product))}.`);
 
 		if (errors.length > 0) {
 			return fail(400, { ...ctx, error: errors.join(' '), badMarket: market, badProduct: product, badPrice: priceRaw });
@@ -106,6 +108,7 @@ export const actions: Actions = {
 
 		try {
 			// Column order: TimestampWAT | Phone | State | Market | Livestock Type | PriceNgnPerKg
+			// (the price column holds ₦ per head for cattle/goat rows, ₦ per kg otherwise)
 			await appendPriceRow([nowWat(), phone, ctx.state, market, product, Math.round(price)]);
 		} catch (err) {
 			console.error('[submit-livestock-price/submit] append failed', err);

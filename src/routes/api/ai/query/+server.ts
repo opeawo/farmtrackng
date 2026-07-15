@@ -139,7 +139,7 @@ function buildMarketPricesBlock(state?: string): string {
 		console.log(`[api/ai/query] price block: index unavailable`);
 		return `
 
-RECENT MARKET PRICES (FarmPaddy index — modeled per kg from field-agent data)
+RECENT MARKET PRICES (FarmPaddy index from field-agent data — cattle & goats priced per head, everything else per kg)
 The price index is not available right now. If the farmer asks about a price, tell them honestly that the live index is temporarily unavailable and suggest they check the Market Prices page in a few minutes.`;
 	}
 
@@ -164,13 +164,13 @@ The price index is not available right now. If the farmer asks about a price, te
 
 	const header = `
 
-RECENT MARKET PRICES (FarmPaddy index — modeled per kg from field-agent data)
+RECENT MARKET PRICES (FarmPaddy index from field-agent data — cattle & goats priced per head, everything else per kg)
 Last refreshed: ${fetchedAt}${degraded ? ' — thin dataset, treat as low confidence' : ''}
 ${scopeNote}
 
 RULES FOR PRICE QUESTIONS:
 - USE this table. Do NOT refuse a price question while there are rows in it.
-- Quote the per-kg figure, the low–high range when given, the confidence, and the state.
+- Quote the figure with its unit exactly as given in the row (per head for cattle/goats, per kg otherwise), the low–high range when given, the confidence, and the state.
 - If the user's exact livestock isn't in the user's state, use the closest comparable category in that state (e.g. broiler ⇄ poultry, ram ⇄ sheep), and say so plainly.
 - If neither exact nor close match exists in the user's state, quote rows from other states and label them clearly as out-of-state references.
 - This is FarmPaddy's own modeled estimate — never name a third-party site as the source.

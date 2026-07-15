@@ -3,6 +3,7 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import PriceVarianceChart from '$lib/components/markets/PriceVarianceChart.svelte';
+	import { unitSuffix } from '$lib/markets/units';
 	import { RefreshCw, AlertCircle, Share2, Copy, Check, X, ChevronRight } from 'lucide-svelte';
 	import type { PageData } from './$types';
 
@@ -117,7 +118,8 @@
 		min: number;
 		max: number;
 		maxScale: number;
-		count: number;
+		count: number; // product×state price points
+		stateCount: number; // unique states represented
 	}
 
 	// One chart per livestock type (for the All-states overview / zoomed view).
@@ -145,7 +147,8 @@
 				min: Math.min(...pts.map((p) => p.lowNgn ?? p.priceNgn)),
 				max: Math.max(...pts.map((p) => p.highNgn ?? p.priceNgn)),
 				maxScale: Math.max(...pts.map((p) => p.highNgn ?? p.priceNgn)),
-				count: pts.length
+				count: pts.length,
+				stateCount: new Set(pts.map((p) => p.state)).size
 			});
 		}
 		return out;
@@ -241,7 +244,7 @@
 	}
 
 	function shareMessage(p: AggregatedPrice): string {
-		return `${p.product} in ${p.state}: ${formatNgn(p.priceNgn)}/kg (FarmPaddy price index) — ${priceUrl(p)}`;
+		return `${p.product} in ${p.state}: ${formatNgn(p.priceNgn)}${unitSuffix(p.category)} (FarmPaddy price index) — ${priceUrl(p)}`;
 	}
 
 	async function copy(text: string, key: string) {
@@ -458,10 +461,10 @@
 						<span class="text-2xl">{activeChart.icon}</span>
 						<span class="font-bold">{activeChart.label}</span>
 					</span>
-					<span class="text-xs text-base-content/50">{activeChart.count} states</span>
+					<span class="text-xs text-base-content/50">{activeChart.stateCount} states</span>
 				</div>
 				<p class="text-[11px] text-base-content/50 mb-3">
-					Median {formatNgn(activeChart.median)}/kg · {formatNgn(activeChart.min)}–{formatNgn(
+					Median {formatNgn(activeChart.median)}{unitSuffix(activeChart.category)} · {formatNgn(activeChart.min)}–{formatNgn(
 						activeChart.max
 					)}
 				</p>
@@ -496,7 +499,7 @@
 							<span class="font-semibold text-sm">{c.label}</span>
 						</span>
 						<span class="flex items-center text-[11px] text-base-content/50 shrink-0">
-							{formatNgn(c.median)}/kg · {c.count} states<ChevronRight size={13} />
+							{formatNgn(c.median)}{unitSuffix(c.category)} · {c.stateCount} states<ChevronRight size={13} />
 						</span>
 					</button>
 					<PriceVarianceChart
@@ -513,7 +516,7 @@
 							class="text-[11px] text-primary font-medium mt-2"
 							onclick={() => (selectedCategory = c.category)}
 						>
-							View all {c.count} states →
+							View all {c.count} prices →
 						</button>
 					{/if}
 				</div>
@@ -558,7 +561,7 @@
 		</div>
 		<div class="flex items-end gap-2">
 			<span class="text-3xl font-bold text-primary leading-none">{formatNgn(selected.priceNgn)}</span>
-			<span class="text-xs text-base-content/50 mb-0.5">per kg</span>
+			<span class="text-xs text-base-content/50 mb-0.5">{selected.unit}</span>
 		</div>
 		{#if selected.lowNgn && selected.highNgn}
 			<p class="text-xs text-base-content/60">

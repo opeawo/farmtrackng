@@ -9,6 +9,7 @@
 //   Markets   — State | Market                  (one row per market)
 //   Livestock — Livestock Type                  (one per row)
 //   Prices    — TimestampWAT | Phone | State | Market | Livestock Type | PriceNgnPerKg
+//               (the price column holds ₦ per head for cattle/goat rows, ₦ per kg otherwise)
 
 import { google } from 'googleapis';
 import { env } from '$env/dynamic/private';
@@ -145,6 +146,7 @@ export interface PriceRow {
  * Raw agent price entries (used by the aggregator only — never sent to clients).
  * Read by FIXED column position in the order appendPriceRow writes them:
  *   [TimestampWAT, Phone, State, Market, Livestock Type, PriceNgnPerKg]
+ * (price is ₦ per head for cattle/goat rows, ₦ per kg for everything else)
  * This way the Prices tab needs no header row, and a header row (if present) is
  * skipped automatically because its price cell is not numeric.
  */

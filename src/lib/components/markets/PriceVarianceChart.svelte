@@ -1,4 +1,4 @@
-<script lang="ts" generics="T extends { state: string; priceNgn: number; lowNgn?: number; highNgn?: number }">
+<script lang="ts" generics="T extends { state: string; product?: string; unit?: string; priceNgn: number; lowNgn?: number; highNgn?: number }">
 	// Lightweight horizontal bar chart of price-per-state for one livestock type.
 	// Bars are sorted most→least expensive; a lighter band shows each state's
 	// low–high spread, and a dashed line marks the national median. No SVG / no
@@ -33,7 +33,9 @@
 </script>
 
 <div class="space-y-1">
-	{#each sorted as p (p.state + p.priceNgn)}
+	<!-- Key by product+state (unique per aggregated point) — price is NOT unique
+	     across points and duplicate keys break hydration of this each block. -->
+	{#each sorted as p ((p.product ?? '') + '|' + p.state)}
 		{@const pricePct = pct(p.priceNgn)}
 		{@const lowPct = p.lowNgn ? pct(p.lowNgn) : pricePct}
 		{@const highPct = p.highNgn ? pct(p.highNgn) : pricePct}
@@ -41,7 +43,7 @@
 			type="button"
 			onclick={() => onselect?.(p)}
 			class="group flex items-center gap-2 w-full text-left"
-			aria-label={`${p.state}: ${fmt(p.priceNgn)} per kg`}
+			aria-label={`${p.state}: ${fmt(p.priceNgn)} ${p.unit ?? 'per kg'}`}
 		>
 			<span
 				class="shrink-0 truncate text-base-content/70 {compact

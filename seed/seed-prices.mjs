@@ -18,10 +18,11 @@ const PRICES_TAB = (process.env.MARKETS_SHEET_PRICES_RANGE || 'Prices!A1:Z100000
 const TAG_PHONE = '+2340000000000';
 const ENTRIES_PER_PAIR = 5;
 
-// Per-livestock ₦/kg bands (rough live-weight ranges).
+// Per-livestock price bands — ₦ per head for cattle/goats (whole-animal market
+// prices), ₦ per kg for the rest.
 const LIVESTOCK = [
-	{ name: 'Cattle', min: 1800, max: 3200 },
-	{ name: 'Goat', min: 2800, max: 4500 },
+	{ name: 'Cattle', min: 250000, max: 800000 },
+	{ name: 'Goat', min: 35000, max: 120000 },
 	{ name: 'Sheep', min: 2800, max: 4200 },
 	{ name: 'Pig', min: 1500, max: 2600 },
 	{ name: 'Poultry', min: 2500, max: 4200 }

@@ -2,16 +2,9 @@
 // the FarmPaddy field-agent intake (a Google Sheet) and aggregated into a
 // per-state, per-livestock index before they ever reach the client.
 
-export type ListingCategory =
-	| 'poultry'
-	| 'cattle'
-	| 'goat'
-	| 'sheep'
-	| 'pig'
-	| 'fish'
-	| 'feed'
-	| 'eggs'
-	| 'other';
+import type { ListingCategory } from '$lib/markets/units';
+
+export type { ListingCategory };
 
 export const LISTING_CATEGORIES: ListingCategory[] = [
 	'poultry',
@@ -31,7 +24,7 @@ export interface AggregatedPrice {
 	product: string; // canonical livestock/product name, e.g. "Broiler (live)"
 	category: ListingCategory;
 	state: string; // Nigerian state
-	unit: string; // e.g. "per kg"
+	unit: string; // "per head" (cattle, goats) or "per kg" (everything else)
 	priceNgn: number; // modeled representative price
 	lowNgn?: number;
 	highNgn?: number;

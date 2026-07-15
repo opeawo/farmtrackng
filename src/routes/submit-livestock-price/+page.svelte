@@ -3,6 +3,7 @@
 	import type { ActionData } from './$types';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import { CheckCircle2, MapPin, Phone, ShieldCheck } from 'lucide-svelte';
+	import { categoryFor, unitForCategory, unitSuffix } from '$lib/markets/units';
 
 	let { form }: { form: ActionData } = $props();
 
@@ -19,6 +20,9 @@
 	}).format(new Date());
 
 	let submitting = $state(false);
+	// Selected livestock type drives the price unit (cattle/goats are per head).
+	let selectedProduct = $state('');
+	const priceUnit = $derived(unitForCategory(categoryFor(selectedProduct)));
 </script>
 
 <SEO title="Submit Livestock Price" canonicalPath="/submit-livestock-price" noindex />
@@ -66,7 +70,7 @@
 			{#if 'submitted' in v && v.submitted}
 				<div class="alert alert-success mb-4 text-sm">
 					<CheckCircle2 size={18} />
-					<span>Saved: {v.savedProduct} · {v.savedMarket} · ₦{v.savedPrice?.toLocaleString('en-NG')}/kg</span>
+					<span>Saved: {v.savedProduct} · {v.savedMarket} · ₦{v.savedPrice?.toLocaleString('en-NG')}{unitSuffix(categoryFor(v.savedProduct ?? ''))}</span>
 				</div>
 			{/if}
 
@@ -107,7 +111,7 @@
 
 				<div>
 					<label for="product" class="block text-sm font-semibold mb-1">Livestock type</label>
-					<select id="product" name="product" required class="select select-bordered w-full">
+					<select id="product" name="product" required bind:value={selectedProduct} class="select select-bordered w-full">
 						<option value="" disabled selected>Select livestock</option>
 						{#each v.livestockTypes as t (t)}
 							<option value={t}>{t}</option>
@@ -116,7 +120,7 @@
 				</div>
 
 				<div>
-					<label for="price" class="block text-sm font-semibold mb-1">Price (₦ per kg)</label>
+					<label for="price" class="block text-sm font-semibold mb-1">Price (₦ {priceUnit})</label>
 					<input
 						id="price"
 						name="price"
