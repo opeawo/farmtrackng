@@ -1,6 +1,17 @@
 import type { PageLoad } from './$types';
 import { unitForCategory, unitSuffix } from '$lib/markets/units';
 
+// ISR: Vercel serves the cached page instantly and regenerates it in the
+// background, so the Google Sheets fetch never blocks a visitor. allowQuery
+// keeps the ?state/?type/?date SEO deep links as distinct cached variants;
+// any other query param serves the base page.
+export const config = {
+	isr: {
+		expiration: 900,
+		allowQuery: ['state', 'type', 'date']
+	}
+};
+
 // Client-safe mirror of the server's AggregatedPrice (do NOT import from
 // $lib/server here — this load runs on the client too).
 interface AggregatedPrice {

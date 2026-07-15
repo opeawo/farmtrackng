@@ -20,10 +20,15 @@ const SHEET_ID = env.MARKETS_SHEET_ID || '1zsAZFsPBRQgOzGwPf2U90irJIh59A1cnjvrGs
 const AGENTS_RANGE = env.MARKETS_SHEET_AGENTS_RANGE || 'Agents!A1:Z2000';
 const MARKETS_RANGE = env.MARKETS_SHEET_MARKETS_RANGE || 'Markets!A1:Z5000';
 const LIVESTOCK_RANGE = env.MARKETS_SHEET_LIVESTOCK_RANGE || 'Livestock!A1:Z500';
-const PRICES_RANGE = env.MARKETS_SHEET_PRICES_RANGE || 'Prices!A1:Z100000';
+// Only columns A–F are read (fixed positions) — a narrow range keeps the
+// transfer/parse cost flat as agent entries grow.
+const PRICES_RANGE = env.MARKETS_SHEET_PRICES_RANGE || 'Prices!A1:F100000';
 const PRICES_TAB = PRICES_RANGE.split('!')[0];
 
 const REF_TTL_MS = 5 * 60 * 1000; // reference tabs: refresh every 5 min
+// A hung Sheets call must fail fast so callers can serve stale data instead
+// of hanging the whole request.
+const SHEETS_TIMEOUT_MS = 10_000;
 
 export const sheetsConfigured = !!env.GOOGLE_SA_EMAIL && !!env.GOOGLE_SA_KEY && !!SHEET_ID;
 
@@ -73,12 +78,15 @@ function pick(obj: Record<string, string>, ...keys: string[]): string {
 
 async function getRows(range: string): Promise<Record<string, string>[]> {
 	const sheets = getClient();
-	const res = await sheets.spreadsheets.values.get({
-		spreadsheetId: SHEET_ID,
-		range,
-		valueRenderOption: 'UNFORMATTED_VALUE',
-		dateTimeRenderOption: 'FORMATTED_STRING'
-	});
+	const res = await sheets.spreadsheets.values.get(
+		{
+			spreadsheetId: SHEET_ID,
+			range,
+			valueRenderOption: 'UNFORMATTED_VALUE',
+			dateTimeRenderOption: 'FORMATTED_STRING'
+		},
+		{ timeout: SHEETS_TIMEOUT_MS }
+	);
 	return rowsToObjects(res.data.values as unknown[][]);
 }
 
@@ -152,12 +160,15 @@ export interface PriceRow {
  */
 export async function getPriceRows(): Promise<PriceRow[]> {
 	const sheets = getClient();
-	const res = await sheets.spreadsheets.values.get({
-		spreadsheetId: SHEET_ID,
-		range: PRICES_RANGE,
-		valueRenderOption: 'UNFORMATTED_VALUE',
-		dateTimeRenderOption: 'FORMATTED_STRING'
-	});
+	const res = await sheets.spreadsheets.values.get(
+		{
+			spreadsheetId: SHEET_ID,
+			range: PRICES_RANGE,
+			valueRenderOption: 'UNFORMATTED_VALUE',
+			dateTimeRenderOption: 'FORMATTED_STRING'
+		},
+		{ timeout: SHEETS_TIMEOUT_MS }
+	);
 	const rows = (res.data.values as unknown[][] | undefined) ?? [];
 	const out: PriceRow[] = [];
 	for (const r of rows) {
@@ -180,13 +191,16 @@ export async function getPriceRows(): Promise<PriceRow[]> {
 /** Append one agent entry to the Prices tab. */
 export async function appendPriceRow(values: (string | number)[]): Promise<void> {
 	const sheets = getClient();
-	await sheets.spreadsheets.values.append({
-		spreadsheetId: SHEET_ID,
-		range: `${PRICES_TAB}!A1`,
-		valueInputOption: 'USER_ENTERED',
-		insertDataOption: 'INSERT_ROWS',
-		requestBody: { values: [values] }
-	});
+	await sheets.spreadsheets.values.append(
+		{
+			spreadsheetId: SHEET_ID,
+			range: `${PRICES_TAB}!A1`,
+			valueInputOption: 'USER_ENTERED',
+			insertDataOption: 'INSERT_ROWS',
+			requestBody: { values: [values] }
+		},
+		{ timeout: SHEETS_TIMEOUT_MS }
+	);
 }
 
 export { normalisePhone };
