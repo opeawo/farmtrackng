@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { equipment, formatNgn, downPayment } from '$lib/data/equipment';
-	import { ShoppingBag, ChevronRight, Wallet, Package } from 'lucide-svelte';
+	import { ShoppingBag, ChevronRight, Wallet, Package, Handshake } from 'lucide-svelte';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import AppMenu from '$lib/components/ui/AppMenu.svelte';
 </script>
@@ -72,4 +72,22 @@
 			</div>
 		</a>
 	{/each}
+
+	<!-- Sourcing & partner-merchant note -->
+	<div class="bg-white rounded-2xl p-4 shadow-sm border border-base-300/50 mt-2">
+		<div class="flex items-start gap-3">
+			<div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+				<Handshake size={18} class="text-primary" />
+			</div>
+			<div class="space-y-1">
+				<p class="text-sm font-semibold">Sourced from partners across Nigeria and beyond</p>
+				<p class="text-xs text-base-content/60 leading-relaxed">
+					Our equipment is sourced from partners and suppliers all over Nigeria and beyond. Are you a
+					merchant, seller, or manufacturer? Become a partner in our livestock infrastructure credit
+					program — email
+					<a href="mailto:hello@fastforward.fund" class="text-primary hover:underline">hello@fastforward.fund</a>.
+				</p>
+			</div>
+		</div>
+	</div>
 </div>
