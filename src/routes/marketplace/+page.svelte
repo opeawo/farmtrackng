@@ -85,7 +85,7 @@
 					Our equipment is sourced from partners and suppliers all over Nigeria and beyond. Are you a
 					merchant, seller, or manufacturer? Become a partner in our livestock infrastructure credit
 					program — email
-					<a href="mailto:hello@fastforward.fund" class="text-primary hover:underline">hello@fastforward.fund</a>.
+					<a href="mailto:hello@farmpaddy.com" class="text-primary hover:underline">hello@farmpaddy.com</a>.
 				</p>
 			</div>
 		</div>

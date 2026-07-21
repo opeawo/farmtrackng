@@ -50,7 +50,7 @@
 			This Privacy Policy explains what information FarmPaddy ("we", "us") collects when you use the FarmPaddy app and website, how we use it, who we share it with, and the choices you have. It is part of our <a href="/terms" class="text-primary hover:underline">Terms and Conditions</a>.
 		</p>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			FarmPaddy is operated by Fast Forward Livestock Venture Studio. If anything in this policy is unclear, contact us at <a href="mailto:hello@livestockfunds.com" class="text-primary hover:underline">hello@livestockfunds.com</a>.
+			FarmPaddy is operated by Fast Forward Livestock Venture Studio. If anything in this policy is unclear, contact us at <a href="mailto:hello@farmpaddy.com" class="text-primary hover:underline">hello@farmpaddy.com</a>.
 		</p>
 	</section>
 
@@ -146,7 +146,7 @@
 			<li><span class="font-semibold">Clear your AI history</span> any time using the "Clear" button on the Animal AI page.</li>
 			<li><span class="font-semibold">Clear all FarmPaddy browser data</span> by clearing site data for FarmPaddy in your browser settings — this removes your stored location, history, and cached data.</li>
 			<li><span class="font-semibold">Stop using the loan portal.</span> Logging out clears the session cookie. You can ask us to remove your loan records by emailing us.</li>
-			<li><span class="font-semibold">Email us</span> at <a href="mailto:hello@livestockfunds.com" class="text-primary hover:underline">hello@livestockfunds.com</a> to ask about, correct, or delete information we hold about you.</li>
+			<li><span class="font-semibold">Email us</span> at <a href="mailto:hello@farmpaddy.com" class="text-primary hover:underline">hello@farmpaddy.com</a> to ask about, correct, or delete information we hold about you.</li>
 		</ul>
 	</section>
 
@@ -157,7 +157,7 @@
 			FarmPaddy uses HTTPS for all traffic between your device and our servers. Loan portal credentials are matched without storing your phone number in a long-lived cookie. We use industry-standard providers (Vercel, Google, OpenStreetMap) that maintain their own security practices.
 		</p>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			No service can promise perfect security. If you become aware of a security issue with FarmPaddy, please tell us at <a href="mailto:hello@livestockfunds.com" class="text-primary hover:underline">hello@livestockfunds.com</a>.
+			No service can promise perfect security. If you become aware of a security issue with FarmPaddy, please tell us at <a href="mailto:hello@farmpaddy.com" class="text-primary hover:underline">hello@farmpaddy.com</a>.
 		</p>
 	</section>
 
@@ -182,7 +182,7 @@
 		<h2 class="font-bold text-base">11. Contact us</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">For privacy questions, requests, or complaints:</p>
 		<ul class="text-sm text-base-content/80 space-y-1">
-			<li><span class="font-semibold">Email:</span> <a href="mailto:hello@livestockfunds.com" class="text-primary hover:underline">hello@livestockfunds.com</a></li>
+			<li><span class="font-semibold">Email:</span> <a href="mailto:hello@farmpaddy.com" class="text-primary hover:underline">hello@farmpaddy.com</a></li>
 			<li><span class="font-semibold">Website:</span> <a href="https://www.livestockfunds.com" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">www.livestockfunds.com</a></li>
 			<li><span class="font-semibold">Operator:</span> Fast Forward Livestock Venture Studio, Lagos, Nigeria</li>
 		</ul>

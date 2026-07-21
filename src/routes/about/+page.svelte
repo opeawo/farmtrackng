@@ -128,9 +128,9 @@
 			We'd love to hear from you — questions, feedback, or ideas to make FarmPaddy better for your farm.
 		</p>
 		<div class="space-y-2 pt-1">
-			<a href="mailto:hello@livestockfunds.com" class="flex items-center gap-3 text-sm hover:text-primary">
+			<a href="mailto:hello@farmpaddy.com" class="flex items-center gap-3 text-sm hover:text-primary">
 				<Mail size={16} class="text-base-content/50" />
-				<span>hello@livestockfunds.com</span>
+				<span>hello@farmpaddy.com</span>
 			</a>
 			<a href="https://www.livestockfunds.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 text-sm hover:text-primary">
 				<Globe size={16} class="text-base-content/50" />

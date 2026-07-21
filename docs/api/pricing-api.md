@@ -25,7 +25,7 @@ Authorization: Bearer fp_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 Missing or invalid keys get `401 { "error": "invalid_api_key" }`.
 
-**Getting a key:** interested? Email **hello@fastforward.fund** to request one.
+**Getting a key:** interested? Email **hello@farmpaddy.com** to request one.
 Keep it secret; treat it like a password. A key can be revoked at any time.
 
 ---

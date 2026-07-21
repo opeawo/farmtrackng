@@ -174,7 +174,7 @@
 		<h2 class="font-bold text-base">12. Contact us</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">If you have questions about these Terms, contact us at:</p>
 		<ul class="text-sm text-base-content/80 space-y-1">
-			<li><span class="font-semibold">Email:</span> <a href="mailto:hello@livestockfunds.com" class="text-primary hover:underline">hello@livestockfunds.com</a></li>
+			<li><span class="font-semibold">Email:</span> <a href="mailto:hello@farmpaddy.com" class="text-primary hover:underline">hello@farmpaddy.com</a></li>
 			<li><span class="font-semibold">Website:</span> <a href="https://www.livestockfunds.com" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">www.livestockfunds.com</a></li>
 		</ul>
 	</section>
