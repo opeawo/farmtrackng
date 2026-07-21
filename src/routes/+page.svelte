@@ -2,13 +2,11 @@
 	import { onMount } from 'svelte';
 	import { user, requestLocation } from '$lib/stores/user';
 	import SEO from '$lib/components/ui/SEO.svelte';
+	import AppMenu from '$lib/components/ui/AppMenu.svelte';
 	import {
 		Sparkles, TrendingUp, ShoppingBag,
-		ChevronRight, Leaf, Sun, Moon, Sunset, MapPin, ArrowRight, Loader2,
-		MoreVertical, Info, FileText, ShieldCheck, X
+		Leaf, Sun, Moon, Sunset, MapPin, ArrowRight, Loader2
 	} from 'lucide-svelte';
-
-	let menuOpen = $state(false);
 
 	const hour = new Date().getHours();
 	const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
@@ -132,14 +130,7 @@
 			</div>
 			<span class="font-bold text-lg tracking-tight">FarmPaddy</span>
 		</div>
-		<button
-			type="button"
-			onclick={() => (menuOpen = true)}
-			class="w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 transition-colors flex items-center justify-center"
-			aria-label="Open menu"
-		>
-			<MoreVertical size={18} class="text-white" />
-		</button>
+		<AppMenu />
 	</div>
 
 	<div class="flex items-center gap-2 mb-2">
@@ -237,81 +228,3 @@
 </div>
 
 <!-- Menu bottom sheet -->
-{#if menuOpen}
-	<div
-		role="dialog"
-		aria-modal="true"
-		aria-label="App menu"
-		class="fixed inset-0 z-50 flex items-end justify-center"
-	>
-		<button
-			type="button"
-			aria-label="Close menu"
-			onclick={() => (menuOpen = false)}
-			class="absolute inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in"
-		></button>
-
-		<div class="relative w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-4 pb-safe animate-in slide-in-from-bottom">
-			<div class="flex items-center justify-between mb-3 px-1">
-				<h2 class="text-sm font-bold text-base-content/80 uppercase tracking-wide">Menu</h2>
-				<button
-					type="button"
-					onclick={() => (menuOpen = false)}
-					class="w-8 h-8 rounded-full hover:bg-base-200 flex items-center justify-center"
-					aria-label="Close"
-				>
-					<X size={18} />
-				</button>
-			</div>
-
-			<div class="space-y-1">
-				<a
-					href="/about"
-					onclick={() => (menuOpen = false)}
-					class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-base-200/60 active:scale-[0.99] transition-transform"
-				>
-					<div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-						<Info size={18} class="text-primary" />
-					</div>
-					<div class="flex-1">
-						<p class="text-sm font-semibold">About FarmPaddy</p>
-						<p class="text-xs text-base-content/50">Story, supporters, and contact</p>
-					</div>
-					<ChevronRight size={16} class="text-base-content/30" />
-				</a>
-
-				<a
-					href="/terms"
-					onclick={() => (menuOpen = false)}
-					class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-base-200/60 active:scale-[0.99] transition-transform"
-				>
-					<div class="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center">
-						<FileText size={18} class="text-accent" />
-					</div>
-					<div class="flex-1">
-						<p class="text-sm font-semibold">Terms &amp; Conditions</p>
-						<p class="text-xs text-base-content/50">How you may use the service</p>
-					</div>
-					<ChevronRight size={16} class="text-base-content/30" />
-				</a>
-
-				<a
-					href="/privacy"
-					onclick={() => (menuOpen = false)}
-					class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-base-200/60 active:scale-[0.99] transition-transform"
-				>
-					<div class="w-9 h-9 rounded-full bg-success/10 flex items-center justify-center">
-						<ShieldCheck size={18} class="text-success" />
-					</div>
-					<div class="flex-1">
-						<p class="text-sm font-semibold">Privacy Policy</p>
-						<p class="text-xs text-base-content/50">What we collect and why</p>
-					</div>
-					<ChevronRight size={16} class="text-base-content/30" />
-				</a>
-			</div>
-
-			<p class="text-[11px] text-center text-base-content/40 pt-4 pb-2">FarmPaddy — Nigeria</p>
-		</div>
-	</div>
-{/if}

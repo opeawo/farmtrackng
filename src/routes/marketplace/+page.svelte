@@ -2,6 +2,7 @@
 	import { equipment, formatNgn, downPayment } from '$lib/data/equipment';
 	import { ShoppingBag, ChevronRight, Wallet, Package } from 'lucide-svelte';
 	import SEO from '$lib/components/ui/SEO.svelte';
+	import AppMenu from '$lib/components/ui/AppMenu.svelte';
 </script>
 
 <SEO
@@ -12,11 +13,14 @@
 
 <!-- Hero -->
 <div class="bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#40916c] text-white px-5 pt-6 pb-8 rounded-b-[2rem]">
-	<div class="flex items-center gap-2 mb-3">
-		<div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-			<ShoppingBag size={18} class="text-white" />
+	<div class="flex items-center justify-between mb-3">
+		<div class="flex items-center gap-2">
+			<div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+				<ShoppingBag size={18} class="text-white" />
+			</div>
+			<span class="font-bold text-lg tracking-tight">Equipment Marketplace</span>
 		</div>
-		<span class="font-bold text-lg tracking-tight">Equipment Marketplace</span>
+		<AppMenu />
 	</div>
 	<h1 class="text-2xl font-bold leading-tight">Tools to grow your farm</h1>
 	<p class="text-white/70 text-sm mt-1">30% down. Spread the rest in installments.</p>

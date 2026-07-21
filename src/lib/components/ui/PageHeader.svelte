@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { ArrowLeft } from 'lucide-svelte';
+	import AppMenu from './AppMenu.svelte';
 
 	interface Props {
 		title: string;
@@ -16,4 +17,7 @@
 		</a>
 	{/if}
 	<h1 class="text-lg font-bold tracking-tight">{title}</h1>
+	<div class="ml-auto">
+		<AppMenu />
+	</div>
 </header>
