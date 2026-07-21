@@ -65,7 +65,7 @@
 			class="absolute inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in"
 		></button>
 
-		<div class="relative w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-4 pb-safe animate-in slide-in-from-bottom">
+		<div class="relative w-full max-w-lg bg-white text-base-content rounded-t-3xl shadow-2xl p-4 pb-safe animate-in slide-in-from-bottom">
 			<div class="flex items-center justify-between mb-3 px-1">
 				<h2 class="text-sm font-bold text-base-content/80 uppercase tracking-wide">Menu</h2>
 				<button
