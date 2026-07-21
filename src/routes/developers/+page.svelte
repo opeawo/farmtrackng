@@ -101,9 +101,9 @@
 		<pre class="bg-base-content/5 rounded-xl p-3 text-xs overflow-x-auto"><code>X-API-Key: fp_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></pre>
 		<pre class="bg-base-content/5 rounded-xl p-3 text-xs overflow-x-auto"><code>Authorization: Bearer fp_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></pre>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			Keys are issued by the FarmPaddy team — email
-			<a href="mailto:hello@livestockfunds.com" class="text-primary hover:underline">hello@livestockfunds.com</a>
-			to request one. Keep it secret; a key can be revoked at any time. Missing or invalid keys
+			Interested? Email
+			<a href="mailto:hello@fastforward.fund" class="text-primary hover:underline">hello@fastforward.fund</a>
+			to request a key. Keep it secret; a key can be revoked at any time. Missing or invalid keys
 			return <code>401 {'{'} "error": "invalid_api_key" {'}'}</code>.
 		</p>
 	</section>
@@ -244,6 +244,6 @@
 		<span class="mx-1">·</span>
 		<a href="/terms" class="hover:text-base-content/70">Terms &amp; Conditions</a>
 		<span class="mx-1">·</span>
-		<a href="mailto:hello@livestockfunds.com" class="hover:text-base-content/70">Request a key</a>
+		<a href="mailto:hello@fastforward.fund" class="hover:text-base-content/70">Request a key</a>
 	</p>
 </div>
