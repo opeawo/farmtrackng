@@ -20,6 +20,7 @@ const SHEET_ID = env.MARKETS_SHEET_ID || '1zsAZFsPBRQgOzGwPf2U90irJIh59A1cnjvrGs
 const AGENTS_RANGE = env.MARKETS_SHEET_AGENTS_RANGE || 'Agents!A1:Z2000';
 const MARKETS_RANGE = env.MARKETS_SHEET_MARKETS_RANGE || 'Markets!A1:Z5000';
 const LIVESTOCK_RANGE = env.MARKETS_SHEET_LIVESTOCK_RANGE || 'Livestock!A1:Z500';
+const APIKEYS_RANGE = env.MARKETS_SHEET_APIKEYS_RANGE || 'ApiKeys!A1:Z2000';
 // Only columns A–F are read (fixed positions) — a narrow range keeps the
 // transfer/parse cost flat as agent entries grow.
 const PRICES_RANGE = env.MARKETS_SHEET_PRICES_RANGE || 'Prices!A1:F100000';
@@ -140,6 +141,34 @@ export async function getLivestockTypes(): Promise<string[]> {
 		if (type && !out.includes(type)) out.push(type);
 	}
 	return out;
+}
+
+export interface ApiKeyRecord {
+	name: string;
+	active: boolean;
+}
+
+// Values in the Active column that mean "disabled". Anything else (including a
+// truthy "yes"/"true"/"1") enables the key; a blank Active cell is treated as
+// active so a freshly-pasted "Key | Name" row works without extra ceremony.
+const INACTIVE_VALUES = new Set(['no', 'false', '0', 'off', 'disabled', 'revoked', 'inactive']);
+
+/**
+ * Partner API keys keyed by the raw key string. Backed by the `ApiKeys` tab
+ * (Key | Name | Active | Created), cached 5 min like the other reference tabs,
+ * so revoking a key propagates within the cache window.
+ */
+export async function getApiKeys(): Promise<Map<string, ApiKeyRecord>> {
+	const rows = await cachedRows('markets:apikeys', APIKEYS_RANGE);
+	const map = new Map<string, ApiKeyRecord>();
+	for (const r of rows) {
+		const key = pick(r, 'key', 'api_key', 'apikey', 'token');
+		if (!key) continue;
+		const activeRaw = pick(r, 'active', 'enabled', 'status').toLowerCase();
+		const active = !INACTIVE_VALUES.has(activeRaw);
+		map.set(key, { name: pick(r, 'name', 'partner', 'owner', 'label'), active });
+	}
+	return map;
 }
 
 export interface PriceRow {

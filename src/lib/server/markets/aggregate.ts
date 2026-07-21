@@ -47,7 +47,7 @@ function trimOutliers(sorted: number[]): number[] {
 }
 
 // Confidence 0–100 from sample size and relative spread (coefficient of variation).
-function confidenceFor(values: number[], mean: number): number {
+export function confidenceFor(values: number[], mean: number): number {
 	const n = values.length;
 	let base: number;
 	if (n >= 8) base = 90;
@@ -62,6 +62,30 @@ function confidenceFor(values: number[], mean: number): number {
 		base -= Math.min(20, Math.round(cv * 60));
 	}
 	return Math.max(30, Math.min(95, Math.round(base)));
+}
+
+export interface PriceStats {
+	priceNgn: number; // outlier-trimmed median
+	lowNgn: number;
+	highNgn: number;
+	confidence: number; // 0–100
+	sampleSize: number; // raw entries before trimming
+}
+
+// Reduce a set of raw ₦ entries to the representative figure + range +
+// confidence. Shared by the current-index aggregator and the daily history
+// aggregator so every FarmPaddy price is computed the same way.
+export function summarizePrices(values: number[]): PriceStats {
+	const sorted = [...values].sort((a, b) => a - b);
+	const kept = trimOutliers(sorted);
+	const mean = kept.reduce((s, v) => s + v, 0) / kept.length;
+	return {
+		priceNgn: Math.round(median(kept)),
+		lowNgn: Math.round(kept[0]),
+		highNgn: Math.round(kept[kept.length - 1]),
+		confidence: confidenceFor(kept, mean),
+		sampleSize: values.length
+	};
 }
 
 export async function fetchAggregatedPrices(): Promise<AggregateResult> {
@@ -92,20 +116,13 @@ export async function fetchAggregatedPrices(): Promise<AggregateResult> {
 
 	const prices: AggregatedPrice[] = [];
 	for (const g of groups.values()) {
-		const sorted = [...g.prices].sort((a, b) => a - b);
-		const kept = trimOutliers(sorted);
-		const mean = kept.reduce((s, v) => s + v, 0) / kept.length;
 		const category = categoryFor(g.product);
 		prices.push({
 			product: g.product,
 			category,
 			state: g.state,
 			unit: unitForCategory(category),
-			priceNgn: Math.round(median(kept)),
-			lowNgn: Math.round(kept[0]),
-			highNgn: Math.round(kept[kept.length - 1]),
-			confidence: confidenceFor(kept, mean),
-			sampleSize: g.prices.length
+			...summarizePrices(g.prices)
 		});
 	}
 
