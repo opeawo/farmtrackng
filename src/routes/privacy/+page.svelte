@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { ChevronLeft, Leaf, ShieldCheck } from 'lucide-svelte';
 	import SEO from '$lib/components/ui/SEO.svelte';
+	import AppMenu from '$lib/components/ui/AppMenu.svelte';
 
 	const LAST_UPDATED = 'May 2026';
 </script>
@@ -13,10 +14,13 @@
 
 <!-- Hero -->
 <div class="bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#40916c] text-white px-5 pt-6 pb-10 rounded-b-[2rem]">
-	<a href="/" class="inline-flex items-center gap-1 text-white/70 text-sm mb-4 hover:text-white">
-		<ChevronLeft size={16} />
-		Home
-	</a>
+	<div class="flex items-center justify-between mb-4">
+		<a href="/" class="inline-flex items-center gap-1 text-white/70 text-sm hover:text-white">
+			<ChevronLeft size={16} />
+			Home
+		</a>
+		<AppMenu />
+	</div>
 	<div class="flex items-center gap-2 mb-3">
 		<div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
 			<Leaf size={18} class="text-white" />
