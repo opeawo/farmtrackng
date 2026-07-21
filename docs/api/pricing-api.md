@@ -1,6 +1,6 @@
-# FarmPaddy Pricing API
+# Nigeria Livestock Price Index API
 
-FarmPaddy's modeled Nigerian livestock **price index** — per-state, per-product figures
+FarmPaddy's **Nigeria Livestock Price Index** — per-state, per-product figures
 aggregated from field-agent submissions across Nigeria. Pull the **current** index or
 **daily history**, filtered by product, state, and category.
 

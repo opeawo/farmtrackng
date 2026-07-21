@@ -41,8 +41,8 @@
 </script>
 
 <SEO
-	title="Pricing API for Developers"
-	description="Pull FarmPaddy's modeled Nigerian livestock price index programmatically — current prices and daily history by product, state, and category, secured with an API key."
+	title="Nigeria Livestock Price Index API"
+	description="Pull FarmPaddy's Nigeria Livestock Price Index programmatically — current prices and daily history by product, state, and category, secured with an API key."
 	canonicalPath="/developers"
 />
 
@@ -58,7 +58,7 @@
 		</div>
 		<span class="font-bold text-lg tracking-tight">FarmPaddy</span>
 	</div>
-	<h1 class="text-2xl font-bold leading-tight">Pricing API</h1>
+	<h1 class="text-2xl font-bold leading-tight">Nigeria Livestock Price Index API</h1>
 	<p class="text-white/70 text-sm mt-1">
 		FarmPaddy's modeled Nigerian livestock price index — current prices and daily history, by
 		product, state, and category.

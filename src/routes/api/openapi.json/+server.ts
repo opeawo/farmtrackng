@@ -23,10 +23,10 @@ const priceObject = {
 const spec = {
 	openapi: '3.0.3',
 	info: {
-		title: 'FarmPaddy Pricing API',
+		title: 'Nigeria Livestock Price Index API',
 		version: '1.0.0',
 		description:
-			"FarmPaddy's modeled Nigerian livestock price index — per-state, per-product figures aggregated from field-agent submissions. Cattle and goats are priced per head, vaccines per dose, everything else per kg."
+			"FarmPaddy's Nigeria Livestock Price Index — per-state, per-product figures aggregated from field-agent submissions. Cattle and goats are priced per head, vaccines per dose, everything else per kg."
 	},
 	servers: [{ url: 'https://www.farmpaddy.com' }],
 	security: [{ ApiKeyHeader: [] }, { BearerToken: [] }],
