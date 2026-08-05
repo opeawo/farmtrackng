@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { unitForCategory, unitSuffix } from '$lib/markets/units';
+import { unitShort } from '$lib/markets/units';
 
 // ISR: Vercel serves the cached page instantly and regenerates it in the
 // background, so the Google Sheets fetch never blocks a visitor. allowQuery
@@ -81,29 +81,29 @@ export const load: PageLoad = async ({ url, fetch }) => {
 				? ` (typical ${ngn(detail.lowNgn)}–${ngn(detail.highNgn)})`
 				: '';
 		seo = {
-			title: `${detail.product} price in ${detail.state} — ${ngn(detail.priceNgn)}${unitSuffix(detail.category)}`,
-			description: `${detail.product} is ${ngn(detail.priceNgn)} ${unitForCategory(detail.category)} in ${detail.state}${range}, per the FarmPaddy livestock price index — modeled daily from field-agent market data across Nigeria.`,
+			title: `${detail.product} price in ${detail.state} — ${ngn(detail.priceNgn)}${unitShort(detail.unit)}`,
+			description: `${detail.product} is ${ngn(detail.priceNgn)} ${detail.unit} in ${detail.state}${range}, per the FarmPaddy livestock price index — modeled daily from field-agent market data across Nigeria.`,
 			canonicalPath: `/markets?state=${encodeURIComponent(detail.state)}&type=${detail.category}`,
 			ogType: 'article'
 		};
 	} else if (state) {
 		seo = {
 			title: `Livestock market prices in ${state}`,
-			description: `Live livestock and poultry market prices in ${state}, Nigeria — per head or per kg by type, from the FarmPaddy price index.`,
+			description: `Live livestock and poultry market prices in ${state}, Nigeria — each commodity in its standard market unit, from the FarmPaddy price index.`,
 			canonicalPath: `/markets?state=${encodeURIComponent(state)}`
 		};
 	} else if (type) {
 		const label = CATEGORY_LABEL[type] ?? 'Livestock';
 		seo = {
 			title: `${label} market prices across Nigeria`,
-			description: `${label} market prices ${unitForCategory(type)} by state across Nigeria, from the FarmPaddy livestock price index.`,
+			description: `${label} market prices by state across Nigeria in standard market units, from the FarmPaddy livestock price index.`,
 			canonicalPath: `/markets?type=${type}`
 		};
 	} else {
 		seo = {
 			title: 'Nigerian Livestock & Poultry Market Prices',
 			description:
-				"FarmPaddy's livestock and poultry price index for Nigeria — modeled daily from market data collected by our field agents nationwide. Cattle and goat prices per head, broilers, layers, sheep, pigs and more per kg, by state.",
+				"FarmPaddy's livestock and poultry price index for Nigeria — modeled daily from market data collected by our field agents nationwide. Every commodity in its standard market unit: live birds per bird, cattle, goats and sheep per head, eggs per crate of 30, feed per bag, meat per kg — by state.",
 			canonicalPath: '/markets'
 		};
 	}

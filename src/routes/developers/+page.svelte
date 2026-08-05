@@ -22,7 +22,7 @@
 		['product', 'Canonical product name, e.g. "Broiler (live)"'],
 		['category', 'Product category (see the category list)'],
 		['state', 'Nigerian state'],
-		['unit', '"per head" (cattle, goats), "per dose" (vaccines) or "per kg"'],
+		['unit', 'The commodity\'s fixed reporting unit — e.g. "per bird", "per head", "per crate of 30", "per 25kg bag", "per kg". See productUnits in /v1/meta'],
 		['priceNgn', 'Modeled representative price in ₦ (outlier-trimmed median)'],
 		['lowNgn / highNgn', 'Plausible low–high range for the point'],
 		['confidence', '0–100 — from sample size and price agreement. Higher = more data, tighter spread'],
@@ -78,10 +78,11 @@
 		</div>
 		<p class="text-sm text-base-content/80 leading-relaxed">
 			A JSON REST API over FarmPaddy's own price index, aggregated from field-agent submissions
-			across Nigeria. Cattle and goats are priced <span class="font-semibold">per head</span>,
-			vaccines <span class="font-semibold">per dose</span>, everything else
-			<span class="font-semibold">per kg</span>. Prices are FarmPaddy's modeled estimates for
-			guidance — not a quote or a guarantee.
+			across Nigeria. Every commodity has a
+			<span class="font-semibold">fixed reporting unit</span> — live birds per bird,
+			cattle/goats/sheep per head, eggs per crate of 30, feed per bag, meat per kg — carried on
+			every price as <code>unit</code> and enumerated per product in <code>/v1/meta</code>. Prices
+			are FarmPaddy's modeled estimates for guidance — not a quote or a guarantee.
 		</p>
 		<ul class="text-sm text-base-content/80 space-y-1 pt-1">
 			<li><span class="font-semibold">Base URL:</span> <code class="text-primary">{BASE}</code></li>
@@ -152,13 +153,13 @@
   "stale": false,
   "prices": [
     {
-      "product": "Broiler (live)",
+      "product": "Broiler - Large",
       "category": "poultry",
       "state": "Kano",
-      "unit": "per kg",
-      "priceNgn": 3200,
-      "lowNgn": 2900,
-      "highNgn": 3600,
+      "unit": "per bird",
+      "priceNgn": 8500,
+      "lowNgn": 7500,
+      "highNgn": 9500,
       "confidence": 84,
       "sampleSize": 6
     }
@@ -191,10 +192,10 @@
   "to": "2026-07-01",
   "count": 2,
   "prices": [
-    { "date": "2026-06-14", "product": "Broiler (live)", "state": "Kano",
-      "unit": "per kg", "priceNgn": 3200, "confidence": 80, "sampleSize": 4 },
-    { "date": "2026-05-30", "product": "Broiler (live)", "state": "Kano",
-      "unit": "per kg", "priceNgn": 3050, "confidence": 74, "sampleSize": 3 }
+    { "date": "2026-06-14", "product": "Broiler - Large", "state": "Kano",
+      "unit": "per bird", "priceNgn": 8500, "confidence": 80, "sampleSize": 4 },
+    { "date": "2026-05-30", "product": "Broiler - Large", "state": "Kano",
+      "unit": "per bird", "priceNgn": 8200, "confidence": 74, "sampleSize": 3 }
   ]
 }`}</code></pre>
 	</section>
@@ -206,8 +207,9 @@
 			<code>/api/v1/meta</code>
 		</h2>
 		<p class="text-sm text-base-content/80 leading-relaxed">
-			The states and products currently in the index, the category vocabulary, and the unit per
-			category — handy for building dropdowns or validating queries.
+			The states and products currently in the index, the category vocabulary, and
+			<code>productUnits</code> — the fixed reporting unit bound to each product. Handy for
+			building dropdowns or validating queries.
 		</p>
 		<pre class="bg-base-content/5 rounded-xl p-3 text-xs overflow-x-auto"><code>curl -H "X-API-Key: $FARMPADDY_KEY" "{BASE}/api/v1/meta"</code></pre>
 	</section>

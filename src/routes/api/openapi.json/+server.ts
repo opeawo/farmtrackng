@@ -4,6 +4,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { LISTING_CATEGORIES } from '$lib/server/markets/types';
+import { PRICE_UNITS } from '$lib/markets/units';
 
 const priceObject = {
 	type: 'object',
@@ -11,7 +12,11 @@ const priceObject = {
 		product: { type: 'string', example: 'Broiler (live)' },
 		category: { type: 'string', enum: LISTING_CATEGORIES },
 		state: { type: 'string', example: 'Kano' },
-		unit: { type: 'string', enum: ['per head', 'per kg', 'per dose'] },
+		unit: {
+			type: 'string',
+			enum: PRICE_UNITS,
+			description: "The commodity's fixed reporting unit (see /api/v1/meta productUnits)."
+		},
 		priceNgn: { type: 'integer', description: 'Modeled representative price (₦), outlier-trimmed median.' },
 		lowNgn: { type: 'integer' },
 		highNgn: { type: 'integer' },
@@ -26,7 +31,7 @@ const spec = {
 		title: 'Nigeria Livestock Price Index API',
 		version: '1.0.0',
 		description:
-			"FarmPaddy's Nigeria Livestock Price Index — per-state, per-product figures aggregated from field-agent submissions. Cattle and goats are priced per head, vaccines per dose, everything else per kg."
+			"FarmPaddy's Nigeria Livestock Price Index — per-state, per-product figures aggregated from field-agent submissions. Every commodity has a fixed reporting unit (per bird, per head, per crate of 30, per 25kg bag, per kg…); each price carries its unit, and /api/v1/meta lists the binding per product."
 	},
 	servers: [{ url: 'https://www.farmpaddy.com' }],
 	security: [{ ApiKeyHeader: [] }, { BearerToken: [] }],

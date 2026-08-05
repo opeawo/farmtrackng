@@ -8,8 +8,10 @@
 //   Agents    — Phone | State | Name            (submission allowlist)
 //   Markets   — State | Market                  (one row per market)
 //   Livestock — Livestock Type                  (one per row)
-//   Prices    — TimestampWAT | Phone | State | Market | Livestock Type | PriceNgnPerKg
-//               (the price column holds ₦ per head for cattle/goat rows, ₦ per kg otherwise)
+//   Prices    — TimestampWAT | Phone | State | Market | Livestock Type | PriceNgn | Unit
+//               (the price is in the commodity's bound reporting unit — see
+//               COMMODITY_UNITS in $lib/markets/units; the Unit column is
+//               stamped server-side on new rows, older rows lack it)
 
 import { google } from 'googleapis';
 import { env } from '$env/dynamic/private';
@@ -182,8 +184,9 @@ export interface PriceRow {
 /**
  * Raw agent price entries (used by the aggregator only — never sent to clients).
  * Read by FIXED column position in the order appendPriceRow writes them:
- *   [TimestampWAT, Phone, State, Market, Livestock Type, PriceNgnPerKg]
- * (price is ₦ per head for cattle/goat rows, ₦ per kg for everything else)
+ *   [TimestampWAT, Phone, State, Market, Livestock Type, PriceNgn, Unit?]
+ * (price is in the commodity's bound reporting unit; the trailing Unit column
+ * only exists on rows appended after unit enforcement)
  * This way the Prices tab needs no header row, and a header row (if present) is
  * skipped automatically because its price cell is not numeric.
  */

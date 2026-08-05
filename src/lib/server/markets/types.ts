@@ -25,7 +25,7 @@ export interface AggregatedPrice {
 	product: string; // canonical livestock/product name, e.g. "Broiler (live)"
 	category: ListingCategory;
 	state: string; // Nigerian state
-	unit: string; // "per head" (cattle, goats) or "per kg" (everything else)
+	unit: string; // the commodity's fixed reporting unit (COMMODITY_UNITS in $lib/markets/units)
 	priceNgn: number; // modeled representative price
 	lowNgn?: number;
 	highNgn?: number;

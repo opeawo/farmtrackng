@@ -9,7 +9,7 @@
 
 import { getPriceRows } from './sheets';
 import { summarizePrices } from './aggregate';
-import { categoryFor, unitForCategory } from '$lib/markets/units';
+import { categoryFor, unitForProduct, needsCutoff, UNIT_CUTOFF_WAT } from '$lib/markets/units';
 import { parseDate } from '$lib/server/loans/normalise';
 import type { AggregatedPrice } from './types';
 import * as cache from './cache';
@@ -45,6 +45,9 @@ export async function fetchPriceHistory(): Promise<HistoryResult> {
 		const state = r.state.trim();
 		const date = parseDate(r.timestampWat);
 		if (!product || !state || !date || !(r.priceNgn >= 100)) continue;
+		// Same unit-enforcement cutoff as the snapshot index: pre-cutoff rows are
+		// unit-ambiguous for commodities whose bound unit isn't the old per-kg.
+		if (needsCutoff(product) && r.timestampWat < UNIT_CUTOFF_WAT) continue;
 		const key = `${product.toLowerCase()}|${state.toLowerCase()}|${date}`;
 		let g = groups.get(key);
 		if (!g) {
@@ -62,7 +65,7 @@ export async function fetchPriceHistory(): Promise<HistoryResult> {
 			product: g.product,
 			category,
 			state: g.state,
-			unit: unitForCategory(category),
+			unit: unitForProduct(g.product),
 			...summarizePrices(g.prices)
 		});
 	}

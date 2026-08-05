@@ -1,15 +1,16 @@
 // Aggregate raw field-agent price entries into FarmPaddy's modeled price index.
 //
 // The agent intake (Google Sheet) is the only source. We group the raw entries
-// by livestock type + state and compute a robust representative price — per
-// head for cattle and goats, per kg for everything else —
-// (outlier-trimmed median), a plausible low–high range, and a confidence score
+// by livestock type + state and compute a robust representative price in the
+// commodity's mandatory reporting unit (see COMMODITY_UNITS in
+// $lib/markets/units): an outlier-trimmed median, a plausible low–high range,
+// and a confidence score
 // from sample size and price spread. Done deterministically in code so it is
 // instant and scales to thousands of rows. The output carries no source
 // identity — it is presented as FarmPaddy's own index.
 
 import { getPriceRows, type PriceRow } from './sheets';
-import { categoryFor, unitForCategory } from '$lib/markets/units';
+import { categoryFor, unitForProduct, needsCutoff, UNIT_CUTOFF_WAT } from '$lib/markets/units';
 import type { AggregatedPrice } from './types';
 
 export interface AggregateResult {
@@ -105,6 +106,10 @@ export async function fetchAggregatedPrices(): Promise<AggregateResult> {
 		const product = r.product.trim();
 		const state = r.state.trim();
 		if (!product || !state || !(r.priceNgn >= 100)) continue;
+		// Rows entered before unit enforcement are unit-ambiguous for commodities
+		// whose bound unit is not the old per-kg label — exclude them.
+		// (WAT timestamps are "YYYY-MM-DD HH:mm:ss", so string compare works.)
+		if (needsCutoff(product) && r.timestampWat < UNIT_CUTOFF_WAT) continue;
 		const key = `${product.toLowerCase()}|${state.toLowerCase()}`;
 		let g = groups.get(key);
 		if (!g) {
@@ -121,7 +126,7 @@ export async function fetchAggregatedPrices(): Promise<AggregateResult> {
 			product: g.product,
 			category,
 			state: g.state,
-			unit: unitForCategory(category),
+			unit: unitForProduct(g.product),
 			...summarizePrices(g.prices)
 		});
 	}

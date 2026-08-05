@@ -3,7 +3,7 @@
 	import type { ActionData } from './$types';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import { CheckCircle2, MapPin, Phone, ShieldCheck } from 'lucide-svelte';
-	import { categoryFor, unitForCategory, unitSuffix } from '$lib/markets/units';
+	import { unitForProduct, unitShort } from '$lib/markets/units';
 
 	let { form }: { form: ActionData } = $props();
 
@@ -20,9 +20,11 @@
 	}).format(new Date());
 
 	let submitting = $state(false);
-	// Selected livestock type drives the price unit (cattle/goats are per head).
+	// The selected commodity's mandatory reporting unit — fixed per commodity,
+	// never agent-editable. Shown beside the price field so the expected unit
+	// is unambiguous.
 	let selectedProduct = $state('');
-	const priceUnit = $derived(unitForCategory(categoryFor(selectedProduct)));
+	const priceUnit = $derived(unitForProduct(selectedProduct));
 </script>
 
 <SEO title="Submit Livestock Price" canonicalPath="/submit-livestock-price" noindex />
@@ -70,7 +72,7 @@
 			{#if 'submitted' in v && v.submitted}
 				<div class="alert alert-success mb-4 text-sm">
 					<CheckCircle2 size={18} />
-					<span>Saved: {v.savedProduct} · {v.savedMarket} · ₦{v.savedPrice?.toLocaleString('en-NG')}{unitSuffix(categoryFor(v.savedProduct ?? ''))}</span>
+					<span>Saved: {v.savedProduct} · {v.savedMarket} · ₦{v.savedPrice?.toLocaleString('en-NG')}{unitShort(unitForProduct(v.savedProduct ?? ''))}</span>
 				</div>
 			{/if}
 
@@ -121,6 +123,11 @@
 
 				<div>
 					<label for="price" class="block text-sm font-semibold mb-1">Price (₦ {priceUnit})</label>
+					{#if selectedProduct}
+						<p class="text-xs text-base-content/60 mb-1.5">
+							{selectedProduct} | ₦____ <span class="font-semibold">{priceUnit}</span>
+						</p>
+					{/if}
 					<input
 						id="price"
 						name="price"
@@ -128,7 +135,7 @@
 						inputmode="numeric"
 						min="1"
 						step="1"
-						placeholder="e.g. 3500"
+						placeholder="Amount in ₦ {priceUnit}"
 						required
 						class="input input-bordered w-full"
 					/>

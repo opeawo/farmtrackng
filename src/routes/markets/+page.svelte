@@ -3,7 +3,7 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import PriceVarianceChart from '$lib/components/markets/PriceVarianceChart.svelte';
-	import { unitSuffix } from '$lib/markets/units';
+	import { unitShort } from '$lib/markets/units';
 	import { RefreshCw, AlertCircle, Share2, Copy, Check, X, ChevronRight } from 'lucide-svelte';
 	import type { PageData } from './$types';
 
@@ -129,6 +129,7 @@
 		maxScale: number;
 		count: number; // states represented (= points.length)
 		stateCount: number;
+		uniformUnit: string | null; // the variant's bound unit (null if points disagree)
 	}
 
 	// How many variants to preview per category in the All-categories overview
@@ -166,7 +167,8 @@
 				max: Math.max(...pts.map((p) => p.highNgn ?? p.priceNgn)),
 				maxScale: Math.max(...pts.map((p) => p.highNgn ?? p.priceNgn)),
 				count: pts.length,
-				stateCount: new Set(pts.map((p) => p.state)).size
+				stateCount: new Set(pts.map((p) => p.state)).size,
+				uniformUnit: pts.every((p) => p.unit === pts[0].unit) ? pts[0].unit : null
 			});
 		}
 		// Group by category (overview order); within a category, most-reported
@@ -306,7 +308,7 @@
 	}
 
 	function shareMessage(p: AggregatedPrice): string {
-		return `${p.product} in ${p.state}: ${formatNgn(p.priceNgn)}${unitSuffix(p.category)} (FarmPaddy price index) — ${priceUrl(p)}`;
+		return `${p.product} in ${p.state}: ${formatNgn(p.priceNgn)}${unitShort(p.unit)} (FarmPaddy price index) — ${priceUrl(p)}`;
 	}
 
 	async function copy(text: string, key: string) {
@@ -532,7 +534,7 @@
 							<span class="text-xs text-base-content/50 shrink-0">{c.stateCount} states</span>
 						</div>
 						<p class="text-[11px] text-base-content/50 mb-3">
-							Median {formatNgn(c.median)}{unitSuffix(c.category)} · {formatNgn(c.min)}–{formatNgn(
+							Median {formatNgn(c.median)}{c.uniformUnit ? unitShort(c.uniformUnit) : ''} · {formatNgn(c.min)}–{formatNgn(
 								c.max
 							)}
 						</p>
@@ -574,7 +576,7 @@
 							>
 								<span class="font-semibold text-sm truncate min-w-0 text-left">{c.label}</span>
 								<span class="flex items-center text-[11px] text-base-content/50 shrink-0">
-									{formatNgn(c.median)}{unitSuffix(c.category)} · {c.stateCount} states<ChevronRight
+									{formatNgn(c.median)}{c.uniformUnit ? unitShort(c.uniformUnit) : ''} · {c.stateCount} states<ChevronRight
 										size={13}
 									/>
 								</span>
