@@ -36,7 +36,7 @@ function quantile(sorted: number[], q: number): number {
 }
 
 // Drop IQR outliers when there are enough points to make that meaningful.
-function trimOutliers(sorted: number[]): number[] {
+export function trimOutliers(sorted: number[]): number[] {
 	if (sorted.length < 4) return sorted;
 	const q1 = quantile(sorted, 0.25);
 	const q3 = quantile(sorted, 0.75);

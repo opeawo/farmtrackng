@@ -4,6 +4,7 @@
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import PriceVarianceChart from '$lib/components/markets/PriceVarianceChart.svelte';
 	import { unitShort } from '$lib/markets/units';
+	import { CATEGORY_ICON, CATEGORY_COLOR } from '$lib/markets/categories';
 	import { RefreshCw, AlertCircle, Share2, Copy, Check, X, ChevronRight } from 'lucide-svelte';
 	import type { PageData } from './$types';
 
@@ -53,32 +54,6 @@
 		{ id: 'vaccine', label: 'Vaccines', icon: '💉' }
 	];
 
-	const CATEGORY_ICON: Record<ListingCategory, string> = {
-		poultry: '🐔',
-		cattle: '🐄',
-		goat: '🐐',
-		sheep: '🐑',
-		pig: '🐷',
-		fish: '🐟',
-		eggs: '🥚',
-		vaccine: '💉',
-		feed: '🌾',
-		other: '🐾'
-	};
-
-	// Per-livestock bar colour so each chart reads as its own series.
-	const CATEGORY_COLOR: Record<ListingCategory, string> = {
-		poultry: '#e09f3e',
-		cattle: '#2d6a4f',
-		goat: '#bc6c25',
-		sheep: '#6b9080',
-		pig: '#cb6c79',
-		fish: '#3a7ca5',
-		eggs: '#c9a227',
-		vaccine: '#7b6ca8',
-		feed: '#84a98c',
-		other: '#84a98c'
-	};
 	// Order livestock charts appear in the "All" overview.
 	const CHART_ORDER: ListingCategory[] = ['poultry', 'cattle', 'goat', 'sheep', 'pig', 'fish', 'eggs', 'vaccine'];
 
@@ -259,6 +234,15 @@
 		}
 	}
 
+	// Historical Data deep link carrying the current state/category selection.
+	const historyHref = $derived.by(() => {
+		const params = new URLSearchParams();
+		if (selectedState !== 'all') params.set('state', selectedState);
+		if (selectedCategory !== 'all') params.set('category', selectedCategory);
+		const qs = params.toString();
+		return `/markets/history${qs ? `?${qs}` : ''}`;
+	});
+
 	function formatNgn(amount: number): string {
 		return '₦' + amount.toLocaleString('en-NG');
 	}
@@ -383,6 +367,9 @@
 		<div>
 			<p class="text-xs text-base-content/50">Prices for</p>
 			<p class="font-semibold text-sm">{watDate}</p>
+			<a href={historyHref} class="inline-flex items-center gap-0.5 text-xs font-semibold text-primary hover:underline mt-0.5">
+				Historical data<ChevronRight size={13} />
+			</a>
 		</div>
 		<div class="flex items-center gap-2">
 			<button

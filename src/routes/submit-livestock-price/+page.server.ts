@@ -8,6 +8,7 @@ import {
 	normalisePhone
 } from '$lib/server/markets/sheets';
 import { unitForProduct } from '$lib/markets/units';
+import { invalidateHistory } from '$lib/server/markets/history';
 
 // Today's timestamp in West Africa Time (GMT+1), "YYYY-MM-DD HH:mm:ss".
 function nowWat(): string {
@@ -119,6 +120,8 @@ export const actions: Actions = {
 				Math.round(price),
 				unitForProduct(product)
 			]);
+			// New entry → let this instance's historical data pick it up immediately.
+			invalidateHistory();
 		} catch (err) {
 			console.error('[submit-livestock-price/submit] append failed', err);
 			return fail(500, { ...ctx, error: 'Could not save the entry. Try again.', badMarket: market, badProduct: product, badPrice: priceRaw });

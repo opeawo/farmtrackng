@@ -23,3 +23,7 @@ export function isExpired<T>(entry: CacheEntry<T> | undefined): boolean {
 	if (!entry) return true;
 	return Date.now() > entry.expiresAt;
 }
+
+export function del(key: string): void {
+	store.delete(key);
+}

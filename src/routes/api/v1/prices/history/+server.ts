@@ -7,24 +7,9 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getPriceHistory } from '$lib/server/markets/history';
 import { filterPrices, isFilterError } from '$lib/server/api/filters';
+import { DATE_RE, todayWat, shiftDays } from '$lib/server/markets/dates';
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_WINDOW_DAYS = 90;
-
-function todayWat(): string {
-	return new Intl.DateTimeFormat('en-CA', {
-		timeZone: 'Africa/Lagos',
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit'
-	}).format(new Date());
-}
-
-function shiftDays(date: string, delta: number): string {
-	const d = new Date(`${date}T00:00:00Z`);
-	d.setUTCDate(d.getUTCDate() + delta);
-	return d.toISOString().slice(0, 10);
-}
 
 export const GET: RequestHandler = async ({ url, setHeaders }) => {
 	const fromParam = url.searchParams.get('from')?.trim();

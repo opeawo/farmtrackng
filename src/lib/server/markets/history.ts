@@ -11,7 +11,7 @@ import { getPriceRows } from './sheets';
 import { summarizePrices } from './aggregate';
 import { categoryFor, unitForProduct, needsCutoff, UNIT_CUTOFF_WAT } from '$lib/markets/units';
 import { parseDate } from '$lib/server/loans/normalise';
-import type { AggregatedPrice } from './types';
+import type { AggregatedPrice, ListingCategory } from './types';
 import * as cache from './cache';
 import { EDGE_CACHE_OK, EDGE_CACHE_RETRY } from './index-cache';
 
@@ -143,4 +143,97 @@ export async function getPriceHistory(): Promise<HistoryAccessResult> {
 			status: 502
 		};
 	}
+}
+
+// ── Market-level history (public /markets/history) ─────────────────────────
+//
+// The public Historical Data page needs the market dimension and arbitrary
+// filter combinations, so it works from the cleaned raw entries rather than
+// the pre-bucketed state × day index above. One Sheets read is cached briefly
+// (10 min) so new agent submissions flow into the history automatically —
+// there is no export or manual step.
+
+/** First day of the public historical dataset. */
+export const HISTORY_START = '2026-07-01';
+
+export interface HistoryRow {
+	date: string; // YYYY-MM-DD (WAT)
+	state: string;
+	market: string;
+	product: string;
+	category: ListingCategory;
+	unit: string;
+	priceNgn: number;
+}
+
+export interface HistoryRowsResult {
+	rows: HistoryRow[];
+	fetchedAt: string;
+	stale: boolean;
+	error?: string;
+}
+
+const ROWS_CACHE_KEY = 'markets:history:rows';
+const ROWS_TTL_MS = 10 * 60 * 1000;
+
+interface CachedRows {
+	fetchedAt: string;
+	rows: HistoryRow[];
+}
+
+async function fetchCleanRows(): Promise<HistoryRow[]> {
+	const raw = await getPriceRows();
+	const out: HistoryRow[] = [];
+	for (const r of raw) {
+		const product = r.product.trim();
+		const state = r.state.trim();
+		const date = parseDate(r.timestampWat);
+		if (!product || !state || !date || !(r.priceNgn >= 100)) continue;
+		if (date < HISTORY_START) continue;
+		// Same unit-enforcement cutoff as the snapshot index and daily history.
+		if (needsCutoff(product) && r.timestampWat < UNIT_CUTOFF_WAT) continue;
+		out.push({
+			date,
+			state,
+			market: r.market.trim() || 'Unspecified market',
+			product,
+			category: categoryFor(product),
+			unit: unitForProduct(product),
+			priceNgn: r.priceNgn
+		});
+	}
+	return out;
+}
+
+/** Cleaned agent entries since HISTORY_START, cached 10 min with stale fallback. */
+export async function getCleanHistoryRows(): Promise<HistoryRowsResult> {
+	const existing = cache.get<CachedRows>(ROWS_CACHE_KEY);
+	if (existing && !cache.isExpired(existing)) return { ...existing.data, stale: false };
+	try {
+		const rows = await fetchCleanRows();
+		const data: CachedRows = { fetchedAt: new Date().toISOString(), rows };
+		cache.set(ROWS_CACHE_KEY, data, ROWS_TTL_MS);
+		return { ...data, stale: false };
+	} catch (err) {
+		console.error('[markets/history] row fetch failed', err);
+		if (existing) {
+			return { ...existing.data, stale: true, error: 'Could not refresh history; showing the most recent data.' };
+		}
+		return {
+			fetchedAt: new Date().toISOString(),
+			rows: [],
+			stale: true,
+			error: 'Price history is temporarily unavailable.'
+		};
+	}
+}
+
+/**
+ * Drop this instance's cached history so the next read picks up a fresh
+ * submission immediately. Best-effort only (other instances keep their cache
+ * until the 10-min TTL) — the TTL is what guarantees freshness.
+ */
+export function invalidateHistory(): void {
+	cache.del(ROWS_CACHE_KEY);
+	cache.del(CACHE_KEY);
 }
